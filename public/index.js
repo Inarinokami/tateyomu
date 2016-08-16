@@ -39,50 +39,77 @@ window.addEventListener("load", function() {
                         var ruby = document.createElement("ruby");
                         ruby.textContent = "　";
                         ruby.appendChild(rt);
-
                         var pe = document.createElement("p");
                         pe.appendChild(ruby);
                         pushLine(pe);
                     }
 
                     for(var i = 0; i < episodeBody.childNodes.length; i++){
-                        var p = episodeBody.childNodes[i];
-                        if(p.nodeType === Node.ELEMENT_NODE){
-                            if(p.nodeName === "P"){
-
-                                if(p.classList.contains("blank")){
+                        var paragraph = episodeBody.childNodes[i];
+                        if(paragraph.nodeType === Node.ELEMENT_NODE){
+                            if(paragraph.nodeName === "P"){
+                                if(paragraph.classList.contains("blank")){
                                     addBlankLine();
                                 }else{
-
-
-
-                                    for(var c = 0; c < p.childNodes.length; c++){
-                                        var child = p.childNodes[c];
+                                    var pe = document.createElement("p");
+                                    pushLine(pe);
+                                    var count = 0;
+                                    for(var c = 0; c < paragraph.childNodes.length; c++){
+                                        var child = paragraph.childNodes[c];
                                         if(child.nodeType === Node.ELEMENT_NODE && child.nodeName === "RUBY"){
-
+                                            if(columns <= count + child.firstChild.textContent.length){
+                                                pushLine(pe);
+                                                pe = document.createElement("p");
+                                            }
+                                            var rt = document.createElement("rt");
+                                            rt.textContent = child.querySelector("rt").textContent;
+                                            var ruby = document.createElement("ruby");
+                                            ruby.textContent = child.firstChild.textContent;
+                                            ruby.appendChild(rt);
+                                            pe.appendChild(ruby);
+                                            count += child.firstChild.textContent.length;
                                         }else if(child.nodeType === Node.TEXT_NODE){
-                                            var text = child.textContent;
-                                            for(var k = 0; k < child.textContent.length; k += columns){
+
+                                            var text = child.textContent.replace(/[a-zA-Z0-9]/g, function(d){
+                                                return String.fromCharCode(0xFEE0 + d.charCodeAt(0));
+                                            });
+
+                                            for(var s = 0; 0 < text.length && s < 100000; s++){
+
+                                                var len = Math.min(columns - count, text.length);
+
+                                                if(len === 0) break;
+
                                                 var rt = document.createElement("rt");
                                                 rt.textContent = "　";
 
                                                 var ruby = document.createElement("ruby");
-                                                ruby.textContent = text.slice(k, k + columns);
+                                                ruby.textContent = text.slice(0, len);
                                                 ruby.appendChild(rt);
 
-                                                var pe = document.createElement("p");
                                                 pe.appendChild(ruby);
 
-                                                pushLine(pe);
+                                                text = text.slice(len);
+
+                                                count += len;
+
+                                                if(columns <= count && 0 < text.length){
+                                                    pe = document.createElement("p");
+                                                    pushLine(pe);
+                                                    count = 0;
+                                                }
+
+
                                             }
                                         }
                                     }
+
                                 }
                             }else{
                                 throw new Error();
                             }
 
-                        }else if(p.nodeType === Node.TEXT_NODE){
+                        }else if(paragraph.nodeType === Node.TEXT_NODE){
                             // ignore
                         }else{
                             throw new Error();
@@ -90,7 +117,7 @@ window.addEventListener("load", function() {
                     }
 
 
-                    for(var i = pageNodes[pageNodes.length - 1].length; i < rows; i++){
+                    for(var i = pageNodes[pageNodes.length - 1].childNodes.length; i < rows; i++){
                         addBlankLine();
                     }
 
@@ -138,7 +165,7 @@ window.addEventListener("load", function() {
         var scaleY = (window.innerHeight - close.getBoundingClientRect().height - pageMargin * 2) / rect.height;
         var scaleX = (window.innerWidth - pageMargin * 2) / rect.width;
         outer.style["transform"] = `scale(${Math.min(scaleX, scaleY)})`;
-        outer.style["transform-origin"] = "0% 0%";
+        outer.style["transform-origin"] = scaleX > scaleY ? "50% 0%" : "0% 50%";
 
         document.querySelector("#caption").textContent = `${page + 1} / ${pageNodes.length}`;
     }
@@ -189,11 +216,11 @@ window.addEventListener("load", function() {
     inner.addEventListener("click", function(e) {
         goto(page + 1);
     });
-
+/*
     prev.addEventListener("click", function(e) {
         goto(page - 1);
     });
-
+*/
     function goto(dest) {
         page = Math.max(0, Math.min(pageNodes.length - 1, dest));
         history.pushState(null, null, "/works" + path + "/" + (page + 1));
