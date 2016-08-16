@@ -8,7 +8,7 @@ html, body {
     overflow: hidden;
 }
 
-h1 {
+#top h1 {
     font-size: 60px;
     writing-mode: vertical-rl;
     color: white;
@@ -189,7 +189,7 @@ button[disabled] {
     opacity: 1.0;
 }
 
-#fullscreen {
+#index {
     font-size: 30px;
     opacity: 0.6;
     width: 30px;
@@ -198,7 +198,7 @@ button[disabled] {
     right: 0px;
 }
 
-#fullscreen:hover {
+#index:hover {
     background-color: grey;
     font-weight: bold;
     opacity: 1.0;
@@ -226,4 +226,13 @@ img.loading {
     margin: auto;
     width: 66px;
     height: 66px;
+}
+
+
+.indexitem {
+    margin: 10px;
+}
+
+.indexitem a {
+    text-decoration: none;
 }
