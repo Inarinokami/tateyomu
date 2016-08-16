@@ -213,3 +213,17 @@ button[disabled] {
     text-align: center;
     opacity: 0.5;
 }
+
+
+
+img.loading {
+    display: none;
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    margin: auto;
+    width: 66px;
+    height: 66px;
+}

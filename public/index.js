@@ -8,12 +8,20 @@ const lineHeight = 1.0;
 const fontSize = 20; // px
 const rubySize = 10; // px
 
+
+
 window.addEventListener("load", function() {
 
     function load(episodeURL) {
-        var matches = /^https:\/\/kakuyomu\.jp\/works(\/\d{19}\/episodes\/\d{19})(\/(\d{1,4}))?$/.exec(episodeURL);
-        path = matches[1];
-        page = (matches[3] && Math.max(0, parseInt(matches[3]) - 1)) || 0;
+
+
+
+        var matches = /^\/works\/(\d{19})\/episodes\/(\d{19})(\/(\d{1,4}|last))?$/.exec(episodeURL);
+        workID = matches[1];
+        episodeID = matches[2];
+        page = matches[4] === "last" ? "last" : (matches[4] && Math.max(0, parseInt(matches[4]) - 1)) || 0;
+        path = `/${workID}/episodes/${episodeID}`;
+
 
         var xhr = new XMLHttpRequest();
         xhr.onreadystatechange = function() {
@@ -78,6 +86,10 @@ window.addEventListener("load", function() {
 
                                                 var len = Math.min(columns - count, text.length);
 
+                                                //if(text[len] === "。"){
+                                                //    len = len - 1;
+                                                //}
+
                                                 if(len === 0) break;
 
                                                 var rt = document.createElement("rt");
@@ -121,11 +133,19 @@ window.addEventListener("load", function() {
                         addBlankLine();
                     }
 
+                    if(page === "last"){
+                        page = pageNodes.length - 1;
+                    }
+
                     viewer.style["display"] = "block";
                     top.style["display"] = "none";
                     notfound.style["display"] = "none";
                     history.pushState(null, null, "/works" + path + "/" + (page + 1));
                     update();
+
+
+                    viewer.style["-webkit-filter"] = "none";
+                    document.querySelector("img.loading").style["display"] = "none";
 
                 } else if(xhr.status === 404){
                     history.pushState(null, null, "/works" + path);
@@ -173,7 +193,8 @@ window.addEventListener("load", function() {
 
     var page = 0;
     var path = "";
-
+    var workID = "";
+    var episodeID = "";
     var pageNodes = [document.createElement("div")];
 
     var outer = document.querySelector("div#outer");
@@ -191,16 +212,9 @@ window.addEventListener("load", function() {
     var read = document.querySelector("#read");
 
     read.addEventListener("click", function() {
-        load(urlInput.value);
+        load(urlInput.value.slice("https://kakuyomu.jp".length));
     });
 
-    urlInput.addEventListener("keydown", function(e) {
-        if (e.keyCode === 13) {
-            load(urlInput.value);
-        } else {
-            update();
-        }
-    });
     document.addEventListener("cut",  function(e){
         setTimeout(function(){
             update();
@@ -222,9 +236,50 @@ window.addEventListener("load", function() {
     });
 */
     function goto(dest) {
-        page = Math.max(0, Math.min(pageNodes.length - 1, dest));
-        history.pushState(null, null, "/works" + path + "/" + (page + 1));
-        update();
+
+        if(document.querySelector("img.loading").style["display"] !== "block"){
+
+            if(dest === -1 || dest === pageNodes.length){
+                viewer.style["-webkit-filter"] = "blur(8px)";
+                document.querySelector("img.loading").style["display"] = "block";
+
+                var xhr = new XMLHttpRequest();
+                xhr.onreadystatechange = function() {
+                    if (xhr.readyState == 4) { // DONE
+                        if (xhr.status == 200) { // OK
+                            var parser = new DOMParser();
+                            var doc = parser.parseFromString(xhr.responseText, "text/html");
+                            var episodes = doc.querySelectorAll(".widget-toc-items .widget-toc-episode a");
+                            for(var i = 0; i < episodes.length; i++){
+                                var episode = episodes[i];
+                                if(episode.getAttribute("href") === `/works/${workID}/episodes/${episodeID}`){
+                                    if(0 < i && dest === -1){
+                                        var nextEpisode = episodes[i - 1];
+                                        load(nextEpisode.getAttribute("href") + "/last");
+                                    }else if(i < episodes.length - 1 && dest === pageNodes.length){
+                                        var nextEpisode = episodes[i + 1];
+                                        load(nextEpisode.getAttribute("href"));
+                                    }
+
+                                    break;
+                                }
+                            }
+                            viewer.style["-webkit-filter"] = "";
+                            document.querySelector("img.loading").style["display"] = "";
+                        }
+                    }
+                };
+                xhr.open("GET", `/raw/works/${workID}`);
+                xhr.send();
+            }else{
+                var nextPage = Math.max(0, Math.min(pageNodes.length - 1, dest));
+                if(nextPage != page){
+                    page = nextPage;
+                    history.pushState(null, null, "/works" + path + "/" + (page + 1));
+                    update();
+                }
+            }
+        }
     }
 
 
@@ -248,8 +303,20 @@ window.addEventListener("load", function() {
     function navigate(){
         if(window.location.pathname === "/"){
             home();
-        }else if(window.location.pathname.match(/^\/works\/\d{19}\/episodes\/\d{19}(\/\d{1,4})?$/)){
-            load(`https://kakuyomu.jp${window.location.pathname}`);
+        }else{
+            var matches = /^\/works\/(\d{19})\/episodes\/(\d{19})(\/(\d{1,4}|last))?$/.exec(window.location.pathname);
+            if(matches){
+                workID = matches[1];
+                episodeID = matches[2];
+                page = matches[4] === "last" ? "last" : (matches[4] && Math.max(0, parseInt(matches[4]) - 1)) || 0;
+                path = `/${workID}/episodes/${episodeID}`;
+
+                load(window.location.pathname);
+
+                //load(matches[1], matches[2], matches[4] === "last" ? "last" : (matches[4] && Math.max(0, parseInt(matches[4]) - 1)) || 0);
+            }else{
+                //404
+            }
         }
     }
 

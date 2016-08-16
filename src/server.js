@@ -4,6 +4,22 @@ var express = require('express');
 
 var app = express();
 
+app.get(/^\/raw\/works\/\d{19}(\/episodes\/\d{19})?$/, function(req, res) {
+    var url = "https://kakuyomu.jp" + req.path.slice("/raw".length);
+    request(url, function(error, response, body) {
+        if (!error && response.statusCode == 200) {
+            res.send(body);
+        }else if (!error && response.statusCode == 404) {
+            res.status(404);
+            res.end();
+        }else{
+            console.log(url);
+            console.log(error);
+            console.log(response.statusCode);
+        }
+    });
+});
+
 app.get(/^\/raw\/\d{19}\/episodes\/\d{19}$/, function(req, res) {
     var url = "https://kakuyomu.jp/works" + req.path.slice("/raw".length);
     request(url, function(error, response, body) {
@@ -20,7 +36,7 @@ app.get(/^\/raw\/\d{19}\/episodes\/\d{19}$/, function(req, res) {
     });
 });
 
-app.get(/^\/works\/\d{19}\/episodes\/\d{19}(\/\d{1,4})?$/, function(req, res) {
+app.get(/^\/works\/\d{19}\/episodes\/\d{19}(\/\d{1,4}|\/last)?$/, function(req, res) {
     res.sendFile(`${process.cwd()}/public/index.html`);
 });
 
