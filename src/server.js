@@ -1,5 +1,4 @@
 var request = require('request');
-var cheerio = require('cheerio');
 var http = require('http');
 var express = require('express');
 
@@ -21,7 +20,7 @@ app.get(/^\/raw\/\d{19}\/episodes\/\d{19}$/, function(req, res) {
     });
 });
 
-app.get(/^\/works\/\d{19}\/episodes\/\d{19}$/, function(req, res) {
+app.get(/^\/works\/\d{19}\/episodes\/\d{19}(\/\d{1,4})?$/, function(req, res) {
     res.sendFile(`${process.cwd()}/public/index.html`);
 });
 

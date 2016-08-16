@@ -2,205 +2,19 @@
 <html>
     <head>
         <meta charset="UTF-8">
-        <style>
-            html, body {
-                overflow: hidden;
-
-                font-family: "游明朝体", "Yu Mincho", YuMincho, serif;
-                margin: 0;
-                width: 100%;
-                height: 100%;
-                overflow: hidden;
-            }
-
-            h1 {
-                font-size: 60px;
-                writing-mode: vertical-rl;
-                color: white;
-                text-shadow: 0px 0px 30px rgba(0,0,0,1), 0px 0px 30px rgba(0,0,0,1), 0px 0px 30px rgba(0,0,0,1), 0px 0px 30px rgba(0,0,0,1), 0px 0px 30px rgba(0,0,0,1);
-                padding-top: 100px;
-                padding-bottom: 100px;
-                margin-left: auto;
-                margin-right: auto;
-                min-height:  4em;
-            }
-
-            .usage {
-                font-size: 20px;
-                writing-mode: vertical-rl;
-                color: white;
-                text-shadow: 0px 0px 10px rgba(0,0,0,1), 0px 0px 10px rgba(0,0,0,1);
-                height: 11em;
-                margin-left: auto;
-                margin-right: auto;
-            }
-
-            #outer {
-                position: relative;
-                overflow: hidden;
-                height: 42em;
-                width: calc(18em * 1.5);
-                margin: 20px;
-                writing-mode: vertical-rl;
-                text-align: left;
-                font-family: "游明朝体", "Yu Mincho", YuMincho, serif;
-                line-height: 1.5em;
-                background-color: #eee;
-
-                margin-left: auto;
-                margin-right: auto;
-            }
-
-            #inner {
-                position: relative;
-            }
-
-            #inner p {
-                margin: 0;
-                padding: 0;
-            }
-
-            input {
-                width: calc(100% - 300px);
-                min-width: 10em;
-                max-width: 40em;
-                margin-left: auto;
-                margin-right: auto;
-                display: block;
-
-                border: solid 1px white;
-                background-color: rgba(0, 0, 0, 0.6);
-                color: white;
-                padding: 0.4em;
-            }
-
-            input[type=text]:invalid {
-                background-color: rgba(255, 255, 0, 0.3);
-            }
-
-            #next {
-                position: absolute;
-                left: 0px;
-                top: 0px;
-                border: solid 1px black;
-                background-color: white;
-                width: 30%;
-                height: 100%;
-                opacity: 0.0;
-            }
-
-            #next:hover {
-                opacity: 0.4;
-            }
-
-            #prev {
-                position: absolute;
-                right: 0px;
-                top: 0px;
-                border: solid 1px black;
-                background-color: white;
-                width: 30%;
-                height: 100%;
-                opacity: 0.0;
-            }
-
-            #prev:hover {
-                opacity: 0.4;
-            }
-
-            #viewer {
-                display: none;
-            }
-
-            #top {
-                background-image: url(/C785_tumikasanattayousyo.jpg);
-                background-size: cover;
-                width: 100%;
-                height: 100%;
-            }
-
-            .content {
-                width: 800px;
-                margin-left: auto;
-                margin-right: auto;
-            }
-
-            button {
-                font-family: "游明朝体", "Yu Mincho", YuMincho, serif;
-                font-size: x-large;
-                background-color: rgba(0, 0, 0, 0.4);
-                border: solid 1px white;
-                color: white;
-                padding-left: 1em;
-                padding-right: 1em;
-            }
-
-            button[disabled] {
-                opacity: 0.3;
-            }
-
-            #read {
-                display: block;
-                margin: 20px;
-                margin-left: auto;
-                margin-right: auto;
-            }
-
-            .topmenu {
-                position: relative;
-                height: 30px;
-            }
-
-            #close {
-                font-size: 30px;
-                opacity: 0.6;
-                width: 30px;
-                height: 30px;
-                position: absolute;;
-                left: 0px;
-            }
-
-            #close:hover {
-                background-color: grey;
-                font-weight: bold;
-                opacity: 1.0;
-            }
-
-            #fullscreen {
-                font-size: 30px;
-                opacity: 0.6;
-                width: 30px;
-                height: 30px;
-                position: absolute;;
-                right: 0px;
-            }
-
-            #fullscreen:hover {
-                background-color: grey;
-                font-weight: bold;
-                opacity: 1.0;
-            }
-
-            .notfound {
-                display: none;
-            }
-
-
-        </style>
+        <link rel="stylesheet" type="text/css" href="/index.css">
         <script src="/index.js"></script>
-
-
     </head>
     <body>
 
         <div id="viewer">
             <div class="topmenu">
                 <div id="close">×</div>
-                <div id="fullscreen">□</div>
+                <!-- <div id="fullscreen">□</div> -->
+                <div id="caption"></div>
             </div>
             <div id="outer">
                 <div id="inner">（読み込み中……）</div>
-                <div id="next">Next</div>
                 <div id="prev">Prev</div>
             </div>
 
@@ -210,20 +24,28 @@
 
             <div class="content">
 
-                <h1>小説は、<br>縦書きで<br>読もう。</h1>
+                <h1>小説は、縦書きで読もう。</h1>
                 <input
                     id="url"
                     type="text"
-                    placeholder="https://kakuyomu.jp/works/000000000000000000/episodes/000000000000000000"
-                    pattern="^https:\/\/kakuyomu\.jp\/works\/\d{19}\/episodes/\d{19}$"
+                    placeholder="https://kakuyomu.jp/works/000000000000000000/episodes/000000000000000000/0000"
+                    pattern="^https:\/\/kakuyomu\.jp\/works\/\d{19}\/episodes/\d{19}$(\/\d{1,4})?"
                     title="カクヨムの作品ページのＵＲＬではありません"
-                    maxlength="74"
+                    maxlength="79"
                 ></input>
                 <button id="read" disabled>縦書きで読む</button>
                 <p class="usage">
-                    【使い方】<br>上のテキストボックスにカクヨム作品のＵＲＬを入力して、『縦書きで読む』ボタンを押してください。
+                    【使いかた】<br>上のテキストボックスにカクヨム作品のＵＲＬを入力して、『縦書きで読む』ボタンを押してください。
                     ドメイン部分を置き換えたＵＲＬでも直接エピソードにアクセスできます。
                 </p>
+                <p class="usage">
+                    【操作】<br>
+                    ↑　前のページ<br>
+                    ↓　次のページ<br>
+                    ←　前のエピソード<br>
+                    →　次のエピソード<br>
+                </p>
+
             </div>
         </div>
 

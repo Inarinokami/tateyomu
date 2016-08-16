@@ -1,0 +1,215 @@
+html, body {
+    overflow: hidden;
+
+    font-family: "游明朝体", "Yu Mincho", YuMincho, serif;
+    margin: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+}
+
+h1 {
+    font-size: 60px;
+    writing-mode: vertical-rl;
+    color: white;
+    text-shadow: 0px 0px 30px rgba(0,0,0,1), 0px 0px 30px rgba(0,0,0,1), 0px 0px 30px rgba(0,0,0,1), 0px 0px 30px rgba(0,0,0,1), 0px 0px 30px rgba(0,0,0,1);
+    padding-top: 100px;
+    padding-bottom: 100px;
+    margin-left: auto;
+    margin-right: auto;
+    min-height:  4em;
+}
+
+.usage {
+    font-size: 20px;
+    writing-mode: vertical-rl;
+    color: white;
+    text-shadow: 0px 0px 10px rgba(0,0,0,1), 0px 0px 10px rgba(0,0,0,1);
+    height: 11em;
+    margin: 2em;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+#outer {
+    position: relative;
+    overflow: hidden;
+    height: calc(20px * 42);
+    /* width: calc( (1em + 0.5em) * 18); */
+    margin: 20px;
+    writing-mode: vertical-rl;
+    text-align: left;
+
+
+    /*background-color: #eee;*/
+
+    margin-left: auto;
+    margin-right: auto;
+}
+
+#inner {
+    font-size: 20px;
+    font-family: "游明朝体", "Yu Mincho", YuMincho, serif;
+    line-height: 1.0em;
+
+    position: relative;
+
+    -webkit-touch-callout: none; /* iOS Safari */
+    -webkit-user-select: none;   /* Chrome/Safari/Opera */
+    -khtml-user-select: none;    /* Konqueror */
+    -moz-user-select: none;      /* Firefox */
+    -ms-user-select: none;
+    user-select: none;
+}
+
+#inner p {
+    margin: 0;
+    padding: 0;
+}
+
+ruby {
+    margin: 0;
+    padding: 0;
+}
+
+rt {
+    margin: 0;
+    padding: 0;
+    font-size: 10px; /* smallest size is 10px in chrome */
+}
+
+input {
+    width: calc(100% - 300px);
+    min-width: 10em;
+    max-width: 40em;
+    margin-left: auto;
+    margin-right: auto;
+    display: block;
+
+    border: solid 1px white;
+    background-color: rgba(0, 0, 0, 0.6);
+    color: white;
+    padding: 0.4em;
+}
+
+input[type=text]:invalid {
+    background-color: rgba(255, 255, 0, 0.3);
+}
+
+#next {
+    position: absolute;
+    left: 0px;
+    top: 0px;
+    border: solid 1px black;
+    background-color: white;
+    width: 30%;
+    height: 100%;
+    opacity: 0.0;
+}
+
+#next:hover {
+    opacity: 0.4;
+}
+
+#prev {
+    position: absolute;
+    right: 0px;
+    top: 0px;
+    border: solid 1px black;
+    background-color: white;
+    width: 30%;
+    height: 100%;
+    opacity: 0.0;
+}
+
+#prev:hover {
+    opacity: 0.4;
+}
+
+#viewer {
+    display: none;
+}
+
+#top {
+    background-image: url(/C785_tumikasanattayousyo.jpg);
+    background-size: cover;
+    width: 100%;
+    height: 100%;
+    overflow-y: auto; 
+}
+
+#top h1 {
+    height: 4em;
+}
+
+.content {
+    width: 800px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+button {
+    font-family: "游明朝体", "Yu Mincho", YuMincho, serif;
+    font-size: x-large;
+    background-color: rgba(0, 0, 0, 0.4);
+    border: solid 1px white;
+    color: white;
+    padding-left: 1em;
+    padding-right: 1em;
+}
+
+button[disabled] {
+    opacity: 0.3;
+}
+
+#read {
+    display: block;
+    margin: 20px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.topmenu {
+    position: relative;
+    height: 30px;
+}
+
+#close {
+    font-size: 30px;
+    opacity: 0.6;
+    width: 30px;
+    height: 30px;
+    position: absolute;;
+    left: 0px;
+}
+
+#close:hover {
+    background-color: grey;
+    font-weight: bold;
+    opacity: 1.0;
+}
+
+#fullscreen {
+    font-size: 30px;
+    opacity: 0.6;
+    width: 30px;
+    height: 30px;
+    position: absolute;;
+    right: 0px;
+}
+
+#fullscreen:hover {
+    background-color: grey;
+    font-weight: bold;
+    opacity: 1.0;
+}
+
+.notfound {
+    display: none;
+}
+
+
+#caption {
+    text-align: center;
+    opacity: 0.5;
+}
