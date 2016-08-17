@@ -6,6 +6,13 @@
         <link rel="stylesheet" type="text/css" href="/index.css">
         <script src="/index.js"></script>
         <title>Tateyomu: 小説は、縦書きで読もう。</title>
+
+        <meta name="twitter:card" content="summary_large_image">
+        <meta name="twitter:site" content="@nytimes">
+        <meta name="twitter:title" content="Tateyomu | 小説は、縦書きで読もう。">
+        <meta name="twitter:description" content="アプリのインストールなどの作業は一切不要。ＵＲＬを指定するだけで、カクヨム作品を縦書き表示、ページ送り操作で閲覧することができます。">
+        <meta name="twitter:image" content="/card.jpg">
+        <meta name="twitter:url" content="https://tateyomu.herokuapp.com/" />
     </head>
     <body>
 
@@ -32,12 +39,15 @@
                     type="text"
                     placeholder="https://kakuyomu.jp/works/000000000000000000"
                     pattern="^https:\/\/kakuyomu\.jp\/works\/\d{19}(\/episodes/\d{19}$(\/\d{1,4})?)?$"
-                    title="カクヨムの作品ページのＵＲＬではありません"
+                    title="カクヨムの作品ページのＵＲＬを入力してください。"
                     maxlength="79"
                 ></input>
                 <button id="read" disabled>縦書きで読む</button>
+
+                <hr>
+
                 <p class="usage">
-                    【使いかた】<br>上のテキストボックスにカクヨム作品のＵＲＬを入力して、『縦書きで読む』ボタンを押してください。
+                    【使いかた】<br>カクヨム作品を縦書き表示・ページ送り操作で閲覧できるサービスです。上のテキストボックスにカクヨム作品のＵＲＬを入力して、『縦書きで読む』ボタンを押してください。
                     エピソードのＵＲＬを入力すると、そのエピソードから読み始めることができます。
                     <br>
                     <br>
@@ -47,12 +57,18 @@
                     <a href="/works/4852201425154898017">『幼馴染の自動販売機にプロポーズした経緯について。』</a><br>
 
                 </p>
+
+                <hr>
+
                 <p class="usage">
-                    【操作】<br>
+                    【操作・デスクトップ版】<br>
                     ↑　前のページ<br>
                     ↓　次のページ<br>
                     ←　前のエピソード<br>
                     →　次のエピソード<br>
+                    <br>
+                    【操作・スマホ版】<br>
+                    フリック　次のページ<br>
                 </p>
 
             </div>
