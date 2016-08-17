@@ -47,6 +47,60 @@ html, body {
     margin: 2em;
     margin-left: auto;
 }
+
+#top input {
+    width: calc(100% - 300px);
+    min-width: 10em;
+    max-width: 40em;
+    margin-left: auto;
+    margin-right: auto;
+    display: block;
+    border: solid 1px white;
+    background-color: rgba(0, 0, 0, 0.6);
+    color: white;
+    padding: 0.4em;
+}
+
+#top input[type=text]:invalid {
+    background-color: rgba(255, 255, 0, 0.3);
+}
+
+
+#top {
+    background-image: url(/background.jpg);
+    background-size: cover;
+    width: 100%;
+    height: 100%;
+    overflow-y: auto;
+}
+#top h1 {
+    height: 4em;
+}
+
+#top button {
+    font-size: x-large;
+    background-color: rgba(0, 0, 0, 0.4);
+    border: solid 1px white;
+    color: white;
+    padding-left: 1em;
+    padding-right: 1em;
+}
+
+#top button[disabled] {
+    opacity: 0.3;
+}
+#top #read {
+    display: block;
+    margin: 20px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+
+#viewer {
+    display: none;
+}
+
 #viewer #outer {
     position: relative;
     overflow: hidden;
@@ -74,36 +128,25 @@ html, body {
     -ms-user-select: none;
     user-select: none;
 }
-#inner p {
+
+#viewer #inner p {
     margin: 0;
     padding: 0;
 }
+
 ruby {
     margin: 0;
     padding: 0;
 }
+
 rt {
     margin: 0;
     padding: 0;
     font-size: 10px;
     /* smallest size is 10px in chrome */
 }
-input {
-    width: calc(100% - 300px);
-    min-width: 10em;
-    max-width: 40em;
-    margin-left: auto;
-    margin-right: auto;
-    display: block;
-    border: solid 1px white;
-    background-color: rgba(0, 0, 0, 0.6);
-    color: white;
-    padding: 0.4em;
-}
-input[type=text]:invalid {
-    background-color: rgba(255, 255, 0, 0.3);
-}
-#next {
+
+#viewer #next {
     position: absolute;
     left: 0px;
     top: 0px;
@@ -113,10 +156,12 @@ input[type=text]:invalid {
     height: 100%;
     opacity: 0.0;
 }
-#next:hover {
+
+#viewer #next:hover {
     opacity: 0.4;
 }
-#prev {
+
+#viewer #prev {
     position: absolute;
     right: 0px;
     top: 0px;
@@ -126,76 +171,65 @@ input[type=text]:invalid {
     height: 100%;
     opacity: 0.0;
 }
-#prev:hover {
+
+#viewer #prev:hover {
     opacity: 0.4;
 }
-#viewer {
-    display: none;
-}
-#top {
-    background-image: url(/background.jpg);
-    background-size: cover;
-    width: 100%;
-    height: 100%;
-    overflow-y: auto;
-}
-#top h1 {
-    height: 4em;
-}
-button {
-    font-size: x-large;
-    background-color: rgba(0, 0, 0, 0.4);
-    border: solid 1px white;
-    color: white;
-    padding-left: 1em;
-    padding-right: 1em;
-}
-button[disabled] {
-    opacity: 0.3;
-}
-#read {
-    display: block;
-    margin: 20px;
-    margin-left: auto;
-    margin-right: auto;
-}
-.topmenu {
+
+#viewer .topmenu {
     position: relative;
     height: 30px;
     display: flex;
 }
-#viewer #close {
+
+#viewer .topmenu #close {
     font-size: 30px;
     opacity: 0.6;
     width: 30px;
     height: 30px;
 }
-#viewer #close:hover {
+#viewer .topmenu #close:hover {
     background-color: grey;
     font-weight: bold;
     opacity: 1.0;
 }
-#viewer #index {
+#viewer .topmenu #index {
     font-size: 30px;
     opacity: 0.6;
     width: 30px;
     height: 30px;
 }
-#viewer #index:hover {
+#viewer .topmenu #index:hover {
     background-color: grey;
     font-weight: bold;
     opacity: 1.0;
 }
-#viewer #caption {
+#viewer .topmenu #caption {
     flex-grow: 1.0;
 }
+
+.indexitem {
+    margin: 10px;
+}
+
+#viewer a {
+    color: rgba(100, 100, 255, 1.0);
+    text-decoration: none;
+}
+
+#viewer a:hover {
+    text-decoration: underline;
+}
+
 .notfound {
     display: none;
 }
+
 #caption {
     text-align: center;
     opacity: 0.5;
 }
+
 img.loading {
     display: none;
     position: absolute;
@@ -206,14 +240,4 @@ img.loading {
     margin: auto;
     width: 66px;
     height: 66px;
-}
-.indexitem {
-    margin: 10px;
-}
-#viewer a {
-    color: rgba(100, 100, 255, 1.0);
-    text-decoration: none;
-}
-#viewer a:hover {
-    text-decoration: underline;
 }

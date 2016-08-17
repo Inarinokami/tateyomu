@@ -3,11 +3,25 @@ var http = require('http');
 var express = require('express');
 var app = express();
 
+var pageview = true;
+
 app.get(/^\/raw\/works\/\d{19}(\/episodes\/\d{19})?$/, function(req, res) {
-    var url = "https://kakuyomu.jp" + req.path.slice("/raw".length);
+    var path = req.path.slice("/raw".length);
+    var url = "https://kakuyomu.jp" + path;
     request(url, function(error, response, body) {
         if (!error && response.statusCode == 200) {
             res.send(body);
+            if(pageview && path.match(/^\/works\/\d{19}\/episodes\/\d{19}$/)){
+                request({
+                    method: "POST",
+                    url: url + "/read",
+                    headers: {
+                        'Accept': "*/*",
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: null
+                });
+            }
         }else if (!error && response.statusCode == 404) {
             res.status(404);
             res.end();

@@ -8,8 +8,19 @@ const lineHeight = 1.0;
 const fontSize = 20; // px
 const rubySize = 10; // px
 
+const pv = true;
+
 function halfToFull(text){
-    return text.replace(/[a-zA-Z0-9]/g, function(d){
+    return text.replace(/([^!?！？])([!?！？]{2})(?![!?！？])/g, function(_, a, b){
+        return a + (
+            b == "!?" ? "⁉" :
+            b == "?!" ? "⁈" :
+            b == "!!" ? "‼" :
+            b == "！？" ? "⁉" :
+            b == "？！" ? "⁈" :
+            b == "！！" ? "‼" :
+            b)
+    }).replace(/[a-zA-Z0-9]/g, function(d){
         return String.fromCharCode(0xFEE0 + d.charCodeAt(0));
     })
 }

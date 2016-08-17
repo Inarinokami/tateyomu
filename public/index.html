@@ -10,7 +10,7 @@
 
         <meta name="twitter:card" content="summary_large_image">
         <meta name="twitter:title" content="Tateyomu | 小説は、縦書きで読もう。">
-        <meta name="twitter:description" content="アプリのインストールなどの作業は一切不要。ＵＲＬを指定するだけで、カクヨム作品を縦書き表示、ページ送り操作で閲覧することができます。">
+        <meta name="twitter:description" content="アプリのインストールなどの作業は一切不要。ＵＲＬを指定するだけで、カクヨム作品を縦書き表示、ページ送り操作で閲覧することができます。デスクトップ環境、スマートフォン環境の両方に対応しています。">
         <meta name="twitter:image" content="https://tateyomu.herokuapp.com/twittercard.jpg">
         <meta name="twitter:url" content="https://tateyomu.herokuapp.com/" />
     </head>
@@ -23,8 +23,7 @@
                 <div id="index">三</div>
             </div>
             <div id="outer">
-                <div id="inner">（読み込み中……）</div>
-                <!-- <div id="prev">Prev</div> -->
+                <div id="inner"></div>
             </div>
 
         </div>
@@ -55,7 +54,7 @@
                     <br>
 
                     【表示例】<br>
-                    <a href="/works/4852201425154905871">『横浜駅SF』</a><br>
+                    <a href="/works/4852201425154905871">『横浜駅ＳＦ』</a><br>
                     <a href="/works/4852201425154898017">『幼馴染の自動販売機にプロポーズした経緯について。』</a><br>
 
                 </p>
@@ -82,7 +81,7 @@
                     文字のサイズ<br>
                     <br>
                     【更新履歴】<br>
-                    ・平成二十八年八月十七日　試作第壱版公開<br>
+                    ・平成二十八年八月十七日、試作第壱版公開<br>
                 </p>
 
             </div>
@@ -94,5 +93,18 @@
         </div>
 
         <img src="/ajax-loader.gif" class="loading"></img>
+
+        <script>
+            if(window.location.pathname === "/"){
+                document.querySelector("#top").style["display"] = "block";
+                document.querySelector("#viewer").style["display"] = "none";
+                document.querySelector(".notfound").style["display"] = "none";
+            }else{
+                document.querySelector("#top").style["display"] = "none";
+                document.querySelector("#viewer").style["display"] = "block";
+                document.querySelector(".notfound").style["display"] = "none";
+                document.querySelector("img.loading").style["display"] = "block";
+            }
+        </script>
     </body>
 <html>
