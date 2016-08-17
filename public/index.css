@@ -130,7 +130,7 @@ input[type=text]:invalid {
     display: none;
 }
 #top {
-    background-image: url(/tumikasanattayousyo.jpg);
+    background-image: url(/background.jpg);
     background-size: cover;
     width: 100%;
     height: 100%;
