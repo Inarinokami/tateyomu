@@ -105,43 +105,67 @@ window.addEventListener("load", function() {
                                 pushLine(pe);
                             }
 
+                            for(var i = 0; i < episodeBody.childNodes.length; i++){
+                                var paragraph = episodeBody.childNodes[i];
+                                for(var k = 0; k < paragraph.childNodes.length; k++){
+                                    var e = paragraph.childNodes[k];
+                                    if(e.nodeType === Node.TEXT_NODE){
+                                        e.textContent = halfToFull(e.textContent);
+                                    }else if(e.nodeType === Node.ELEMENT_NODE && e.nodeName === "RUBY"){
+                                        var rb = e.querySelector("rb");
+                                        rb.textContent = halfToFull(rb.textContent);
+                                        var rt = e.querySelector("rt");
+                                        rt.textContent = halfToFull(rt.textContent);
+                                    }
+                                }
+                            }
+
                             while(episodeBody.childNodes.length > 0){
                                 getLastPage().appendChild(episodeBody.childNodes[0]);
-
                                 var bounds = getLastPage().getBoundingClientRect();
                                 if(bounds.height < bounds.width * pageAspectRatio){
 
-                                    var element = getLastPage().childNodes[getLastPage().childNodes.length - 1];
+                                    var paragraph = getLastPage().childNodes[getLastPage().childNodes.length - 1];
+                                    getLastPage().removeChild(paragraph);
+                                    episodeBody.insertBefore(paragraph, episodeBody.firstChild);
 
-                                    if(element.nodeType === Node.ELEMENT_NODE){
-                                        if(element.nodeName === "RUBY"){
-                                            getLastPage().removeChild(element);
-                                            episodeBody.insertBefore(element, episodeBody.firstChild);
-                                        }else if(element.nodeName === "P"){
-                                            var remain = "";
-                                            while(element.textContent.length > 0){
-                                                var bounds = getLastPage().getBoundingClientRect();
-                                                if(bounds.width * pageAspectRatio < bounds.height){
-                                                    break;
-                                                }else{
-                                                    var lastChar = element.textContent[element.textContent.length - 1];
+                                    var p = document.createElement("p");
+                                    getLastPage().appendChild(p);
 
-                                                    var w = lastChar === "。" || lastChar === "、" || lastChar === "」" || lastChar === "）" ? 2 : 1;
-                                                    remain = element.textContent.slice(element.textContent.length - w) + remain;
-                                                    element.textContent = element.textContent.slice(0, element.textContent.length - w);
+                                    while(paragraph.childNodes.length > 0){
+                                        var e = paragraph.childNodes[0];
+                                        p.appendChild(e);
+                                        var bounds = getLastPage().getBoundingClientRect();
+                                        if(bounds.height < bounds.width * pageAspectRatio){
+                                            if(e.nodeType === Node.TEXT_NODE){
+                                                var remainText = "";
+                                                while(e.textContent.length > 0){
+                                                    var bounds = getLastPage().getBoundingClientRect();
+                                                    if(bounds.width * pageAspectRatio < bounds.height){
+                                                        break;
+                                                    }else{
+                                                        var lastChar = e.textContent[e.textContent.length - 1];
+                                                        var w = lastChar === "。" || lastChar === "、" || lastChar === "」" || lastChar === "）" ? 2 : 1;
+                                                        remainText = e.textContent.slice(e.textContent.length - w) + remainText;
+                                                        e.textContent = e.textContent.slice(0, e.textContent.length - w);
+                                                    }
                                                 }
+
+                                                if(remainText.length > 0){
+                                                    paragraph.insertBefore(document.createTextNode(remainText), paragraph.firstChild);
+                                                }
+
+                                            }else if(e.nodeType === Node.ELEMENT_NODE && e.nodeName === "RUBY"){
+                                                p.removeChild(e);
+                                                paragraph.insertBefore(e, paragraph.firstChild);
+                                            }else if(e.nodeType === Node.ELEMENT_NODE && e.nodeName === "BR"){
+                                                p.removeChild(e);
+                                                paragraph.insertBefore(e, paragraph.firstChild);
+                                            } else{
+                                                throw new Error();
                                             }
-                                            if(element.textContent.length === 0){
-                                                getLastPage().removeChild(element);
-                                            }
-                                            var p = document.createElement("p");
-                                            p.textContent = remain;
-                                            episodeBody.insertBefore(p, episodeBody.firstChild);
-                                        }else{
-                                            throw new Error();
+                                            break;
                                         }
-                                    }else{
-                                        throw new Error();
                                     }
 
                                     if(episodeBody.childNodes.length > 0){
@@ -333,6 +357,10 @@ window.addEventListener("load", function() {
                                     }else if(i < episodes.length - 1 && dest === outer.childNodes.length){
                                         var nextEpisode = episodes[i + 1];
                                         load(nextEpisode.getAttribute("href"));
+                                    }else{
+                                        // end of work
+                                        viewer.style["-webkit-filter"] = "none";
+                                        document.querySelector("img.loading").style["display"] = "none";
                                     }
 
                                     break;
