@@ -8,7 +8,7 @@ const lineHeight = 1.0;
 const fontSize = 20; // px
 const rubySize = 10; // px
 
-const pv = true;
+const pageAspectRatio = 1.5;
 
 function halfToFull(text){
     return text.replace(/([^!?！？])([!?！？]{2})(?![!?！？])/g, function(_, a, b){
@@ -27,161 +27,181 @@ function halfToFull(text){
 
 window.addEventListener("load", function() {
 
+    function clearPages(){
+        outer.innerHTML = "";
+        appendBlankPage();
+    }
+
+    function appendBlankPage(){
+        outer.appendChild(document.createElement("div"));
+    }
+
+    function getLastPage(){
+        return outer.childNodes[outer.childNodes.length - 1];
+    }
+
+    function layout(){
+        outer.style["transform"] = `scale(1.0)`;
+        var pageWidth = 0;
+        var pageHeight = 0;
+        for(var i = 0; i < outer.childNodes.length; i++){
+            var rect = outer.childNodes[i].getBoundingClientRect();
+            pageWidth = Math.max(pageWidth, rect.width);
+            pageHeight = Math.max(pageHeight, rect.height);
+        }
+        for(var i = 0; i < outer.childNodes.length; i++){
+            var page = outer.childNodes[i];
+            page.style["width"] = pageWidth + "px";
+            page.style["height"] = pageHeight + "px";
+        }
+        var scaleY = (window.innerHeight - close.getBoundingClientRect().height - pageMargin * 2) / pageHeight;
+        var scaleX = (window.innerWidth - pageMargin * 2) / pageWidth;
+        var scale = Math.min(scaleX, scaleY);
+        outer.style["transform"] = `scale(${scale})`;
+        outer.style["transform-origin"] = scaleX > scaleY ? "50% 0%" : "0% 50%";
+    }
+
     function load(episodeURL) {
         var matches = /^\/works\/(\d{19})(\/episodes\/(\d{19})(\/(\d{1,4}|last))?)?$/.exec(episodeURL);
-        workID = matches[1];
-
+        var nextWorkID = matches[1];
         if(matches[2]){
 
-            episodeID = matches[3];
-            page = matches[5] === "last" ? "last" : (matches[5] && Math.max(0, parseInt(matches[5]) - 1)) || 0;
-            path = `/${workID}/episodes/${episodeID}`;
+            var nextEpisodeID = matches[3];
+            var nextPage = matches[5];
 
-            var xhr = new XMLHttpRequest();
-            xhr.onreadystatechange = function() {
-                if (xhr.readyState == 4) { // DONE
-                    if (xhr.status == 200) { // OK
-                        var parser = new DOMParser();
-                        var doc = parser.parseFromString(xhr.responseText, "text/html");
-                        var episodeBody = doc.querySelector(".widget-episodeBody");
-                        pageNodes = [document.createElement("div")];
+            // episode page //
 
-                        function pushLine(line){
-                            if(rows <= pageNodes[pageNodes.length - 1].childNodes.length){
-                                var div = document.createElement("div");
-                                pageNodes.push(div);
+            if(workID !== nextWorkID || episodeID !== nextEpisodeID){
+                workID = nextWorkID;
+                episodeID = nextEpisodeID;
+                path = `/${workID}/episodes/${episodeID}`;
+
+                var xhr = new XMLHttpRequest();
+                xhr.onreadystatechange = function() {
+                    if (xhr.readyState == 4) { // DONE
+                        if (xhr.status == 200) { // OK
+
+                            var parser = new DOMParser();
+                            var doc = parser.parseFromString(xhr.responseText, "text/html");
+                            var episodeBody = doc.querySelector(".widget-episodeBody");
+
+                            clearPages();
+
+                            function pushLine(line){
+                                if(rows <= getLastPage().childNodes.length){
+                                    appendBlankPage();
+                                }
+                                getLastPage().appendChild(line);
                             }
 
-                            pageNodes[pageNodes.length - 1].appendChild(line);
-                        }
+                            function addBlankLine(){
+                                var rt = document.createElement("rt");
+                                rt.textContent = "　";
+                                var ruby = document.createElement("ruby");
+                                ruby.textContent = "　";
+                                ruby.appendChild(rt);
+                                var pe = document.createElement("p");
+                                pe.appendChild(ruby);
+                                pushLine(pe);
+                            }
 
-                        function addBlankLine(){
-                            var rt = document.createElement("rt");
-                            rt.textContent = "　";
-                            var ruby = document.createElement("ruby");
-                            ruby.textContent = "　";
-                            ruby.appendChild(rt);
-                            var pe = document.createElement("p");
-                            pe.appendChild(ruby);
-                            pushLine(pe);
-                        }
+                            while(episodeBody.childNodes.length > 0){
+                                getLastPage().appendChild(episodeBody.childNodes[0]);
 
-                        for(var i = 0; i < episodeBody.childNodes.length; i++){
-                            var paragraph = episodeBody.childNodes[i];
-                            if(paragraph.nodeType === Node.ELEMENT_NODE){
-                                if(paragraph.nodeName === "P"){
-                                    if(paragraph.classList.contains("blank")){
-                                        addBlankLine();
-                                    }else{
-                                        var pe = document.createElement("p");
-                                        pushLine(pe);
-                                        var count = 0;
-                                        for(var c = 0; c < paragraph.childNodes.length; c++){
-                                            var child = paragraph.childNodes[c];
-                                            if(child.nodeType === Node.ELEMENT_NODE && child.nodeName === "RUBY"){
-                                                if(columns <= count + child.firstChild.textContent.length){
-                                                    pushLine(pe);
-                                                    pe = document.createElement("p");
-                                                }
-                                                var rt = document.createElement("rt");
-                                                rt.textContent = child.querySelector("rt").textContent;
-                                                var ruby = document.createElement("ruby");
-                                                ruby.textContent = child.firstChild.textContent;
-                                                ruby.appendChild(rt);
-                                                pe.appendChild(ruby);
-                                                count += child.firstChild.textContent.length;
-                                            }else if(child.nodeType === Node.TEXT_NODE){
+                                var bounds = getLastPage().getBoundingClientRect();
+                                if(bounds.height < bounds.width * pageAspectRatio){
 
-                                                var text = halfToFull(child.textContent);
+                                    var element = getLastPage().childNodes[getLastPage().childNodes.length - 1];
 
-                                                for(var s = 0; 0 < text.length && s < 100000; s++){
+                                    if(element.nodeType === Node.ELEMENT_NODE){
+                                        if(element.nodeName === "RUBY"){
+                                            getLastPage().removeChild(element);
+                                            episodeBody.insertBefore(element, episodeBody.firstChild);
+                                        }else if(element.nodeName === "P"){
+                                            var remain = "";
+                                            while(element.textContent.length > 0){
+                                                var bounds = getLastPage().getBoundingClientRect();
+                                                if(bounds.width * pageAspectRatio < bounds.height){
+                                                    break;
+                                                }else{
+                                                    var lastChar = element.textContent[element.textContent.length - 1];
 
-                                                    var len = Math.min(columns - count, text.length);
-
-                                                    //if(text[len] === "。"){
-                                                    //    len = len - 1;
-                                                    //}
-
-                                                    if(len === 0) break;
-
-                                                    var rt = document.createElement("rt");
-                                                    rt.textContent = "　";
-
-                                                    var ruby = document.createElement("ruby");
-                                                    ruby.textContent = text.slice(0, len);
-                                                    ruby.appendChild(rt);
-
-                                                    pe.appendChild(ruby);
-
-                                                    text = text.slice(len);
-
-                                                    count += len;
-
-                                                    if(columns <= count && 0 < text.length){
-                                                        pe = document.createElement("p");
-                                                        pushLine(pe);
-                                                        count = 0;
-                                                    }
-
-
+                                                    var w = lastChar === "。" || lastChar === "、" || lastChar === "」" || lastChar === "）" ? 2 : 1;
+                                                    remain = element.textContent.slice(element.textContent.length - w) + remain;
+                                                    element.textContent = element.textContent.slice(0, element.textContent.length - w);
                                                 }
                                             }
+                                            if(element.textContent.length === 0){
+                                                getLastPage().removeChild(element);
+                                            }
+                                            var p = document.createElement("p");
+                                            p.textContent = remain;
+                                            episodeBody.insertBefore(p, episodeBody.firstChild);
+                                        }else{
+                                            throw new Error();
                                         }
-
+                                    }else{
+                                        throw new Error();
                                     }
-                                }else{
-                                    throw new Error();
+
+                                    if(episodeBody.childNodes.length > 0){
+                                        appendBlankPage();
+                                    }
                                 }
-
-                            }else if(paragraph.nodeType === Node.TEXT_NODE){
-                                // ignore
-                            }else{
-                                throw new Error();
                             }
+
+                            page = nextPage === "last" ?  outer.childNodes.length - 1 : (nextPage && Math.max(0, parseInt(nextPage) - 1)) || 0;
+
+                            layout();
+
+
+                            viewer.style["display"] = "block";
+                            top.style["display"] = "none";
+                            notfound.style["display"] = "none";
+                            history.pushState(null, null, "/works" + path + "/" + (page + 1));
+                            update();
+
+
+                            viewer.style["-webkit-filter"] = "none";
+                            document.querySelector("img.loading").style["display"] = "none";
+
+                        } else if(xhr.status === 404){
+                            history.pushState(null, null, "/works" + path);
+                            top.style["display"] = "none";
+                            viewer.style["display"] = "none";
+                            notfound.style["display"] = "block";
+                        } else {
+                            //alert("status = " + xhr.status);
                         }
-
-
-                        for(var i = pageNodes[pageNodes.length - 1].childNodes.length; i < rows; i++){
-                            addBlankLine();
-                        }
-
-                        if(page === "last"){
-                            page = pageNodes.length - 1;
-                        }
-
-                        viewer.style["display"] = "block";
-                        top.style["display"] = "none";
-                        notfound.style["display"] = "none";
-                        history.pushState(null, null, "/works" + path + "/" + (page + 1));
-                        update();
-
-
-                        viewer.style["-webkit-filter"] = "none";
-                        document.querySelector("img.loading").style["display"] = "none";
-
-                    } else if(xhr.status === 404){
-                        history.pushState(null, null, "/works" + path);
-                        top.style["display"] = "none";
-                        viewer.style["display"] = "none";
-                        notfound.style["display"] = "block";
-                    } else {
-                        //alert("status = " + xhr.status);
                     }
                 }
+                xhr.open("GET", `/raw/works${path}`);
+                xhr.send();
+            }else{
+                // just move to the page
+                page = nextPage === "last" ?  outer.childNodes.length - 1 : (nextPage && Math.max(0, parseInt(nextPage) - 1)) || 0;
+                update();
             }
-            xhr.open("GET", `/raw/works${path}`);
-            xhr.send();
+
+
+
+
 
         }else{
+            workID = nextWorkID;
+
             // index
             var xhr = new XMLHttpRequest();
             xhr.onreadystatechange = function() {
-                if (xhr.readyState == 4) { // DONE
-                    if (xhr.status == 200) { // OK
+                if (xhr.readyState == 4) {
+                    if (xhr.status == 200) {
                         var parser = new DOMParser();
                         var doc = parser.parseFromString(xhr.responseText, "text/html");
                         var episodes = doc.querySelectorAll(".widget-toc-items .widget-toc-episode");
-                        inner.innerHTML = "<h1>目次</h1>";
+
+                        clearPages();
+                        getLastPage().innerHTML = "<h1>目次</h1>";
+
                         for(var i = 0; i < episodes.length; i++){
                             (function(){
                                 var episode = episodes[i];
@@ -200,7 +220,7 @@ window.addEventListener("load", function() {
                                 div.classList.add("indexitem");
                                 div.appendChild(a);
 
-                                inner.appendChild(div);
+                                getLastPage().appendChild(div);
                             })();
                         }
 
@@ -208,6 +228,9 @@ window.addEventListener("load", function() {
                         viewer.style["display"] = "block";
                         top.style["display"] = "none";
                         notfound.style["display"] = "none";
+                        document.querySelector("img.loading").style["display"] = "none";
+                    }else{
+                        // error, but ignore
                     }
                 }
             };
@@ -231,18 +254,19 @@ window.addEventListener("load", function() {
             read.setAttribute("disabled", "");
         }
 
+        var inners = outer.querySelectorAll("div");
+        for(var i = 0; i < inners.length; i++){
+            var inner = inners[i];
+            inner.style["display"] = page - 2 <= i && i <= page + 2 ? "block" : "none";
+            inner.style["z-index"] = -i;
+            inner.style["position"] = page === i ? "relative" : "absolute";
+            inner.style["left"] = i >= page ? "0px" : "1000px";
+            inner.style["top"] = "0px"
+        }
 
-        inner.innerHTML = "";
-        inner.appendChild(pageNodes[Math.max(0, Math.min(pageNodes.length - 1, page))]);
 
-        outer.style["transform"] = `scale(1.0)`;
-        var rect = outer.getBoundingClientRect();
-        var scaleY = (window.innerHeight - close.getBoundingClientRect().height - pageMargin * 2) / rect.height;
-        var scaleX = (window.innerWidth - pageMargin * 2) / rect.width;
-        outer.style["transform"] = `scale(${Math.min(scaleX, scaleY)})`;
-        outer.style["transform-origin"] = scaleX > scaleY ? "50% 0%" : "0% 50%";
 
-        document.querySelector("#caption").textContent = `${page + 1} / ${pageNodes.length}`;
+        document.querySelector("#caption").textContent = `${page + 1} / ${outer.childNodes.length}`;
     }
 
 
@@ -250,10 +274,8 @@ window.addEventListener("load", function() {
     var path = "";
     var workID = "";
     var episodeID = "";
-    var pageNodes = [document.createElement("div")];
 
     var outer = document.querySelector("div#outer");
-    var inner = document.querySelector("div#inner");
 
     var next = document.querySelector("div#next");
     var prev = document.querySelector("div#prev");
@@ -283,7 +305,7 @@ window.addEventListener("load", function() {
     });
     urlInput.addEventListener("change", update);
 
-    inner.addEventListener("click", function(e) {
+    outer.addEventListener("click", function(e){
         goto(page + 1);
     });
 
@@ -291,7 +313,7 @@ window.addEventListener("load", function() {
 
         if(document.querySelector("img.loading").style["display"] !== "block"){
 
-            if(dest === -1 || dest === pageNodes.length){
+            if(dest === -1 || dest === outer.childNodes.length){
                 viewer.style["-webkit-filter"] = "blur(5px)";
                 document.querySelector("img.loading").style["display"] = "block";
 
@@ -308,7 +330,7 @@ window.addEventListener("load", function() {
                                     if(0 < i && dest === -1){
                                         var nextEpisode = episodes[i - 1];
                                         load(nextEpisode.getAttribute("href") + "/last");
-                                    }else if(i < episodes.length - 1 && dest === pageNodes.length){
+                                    }else if(i < episodes.length - 1 && dest === outer.childNodes.length){
                                         var nextEpisode = episodes[i + 1];
                                         load(nextEpisode.getAttribute("href"));
                                     }
@@ -322,7 +344,7 @@ window.addEventListener("load", function() {
                 xhr.open("GET", `/raw/works/${workID}`);
                 xhr.send();
             }else{
-                var nextPage = Math.max(0, Math.min(pageNodes.length - 1, dest === "last" ? pageNodes.length - 1 : dest));
+                var nextPage = Math.max(0, Math.min(outer.childNodes.length - 1, dest === "last" ? outer.childNodes.length - 1 : dest));
                 if(nextPage != page){
                     page = nextPage;
                     history.pushState(null, null, "/works" + path + "/" + (page + 1));
