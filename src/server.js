@@ -25,6 +25,6 @@ app.get(/.*/, function(req, res) {
     res.sendFile(`${process.cwd()}/public/index.html`);
 });
 
-var server = app.listen(8080, function() {
+var server = app.listen(process.env.PORT || 8080, function() {
     console.log(`listening at http://localhost:${server.address().port}`);
 });
