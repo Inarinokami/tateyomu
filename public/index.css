@@ -1,12 +1,3 @@
-@font-face {
-    font-family: 'Harenosora';
-    src: url('/Harenosora.otf') format('opentype');
-}
-
-@font-face {
-    font-family: 'Yu+Mincho+Medium';
-    src: url('/Yu+Mincho+Medium.otf') format('opentype');
-}
 
 @font-face {
     font-family: 'Kokoro';
@@ -139,7 +130,7 @@ input[type=text]:invalid {
     display: none;
 }
 #top {
-    background-image: url(/C785_tumikasanattayousyo.jpg);
+    background-image: url(/tumikasanattayousyo.jpg);
     background-size: cover;
     width: 100%;
     height: 100%;
