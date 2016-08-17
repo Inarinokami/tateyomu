@@ -3,9 +3,13 @@
     src: url('/Harenosora.otf') format('opentype');
 }
 
+@font-face {
+    font-family: 'Yu+Mincho+Medium';
+    src: url('/Yu+Mincho+Medium.otf') format('opentype');
+}
+
 html, body {
     overflow: hidden;
-    font-family: 'Harenosora', "游明朝体", "Yu Mincho", YuMincho, serif;
     margin: 0;
     width: 100%;
     height: 100%;
