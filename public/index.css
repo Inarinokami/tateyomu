@@ -8,6 +8,21 @@ html, body {
     overflow: hidden;
 }
 
+#top .content {
+    max-width: 800px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+#top a {
+    color: rgba(180, 180, 255, 1.0);
+    text-decoration: none;
+}
+
+#top a:hover {
+    text-decoration: underline;
+}
+
 #top h1 {
     font-size: 60px;
     writing-mode: vertical-rl;
@@ -20,18 +35,17 @@ html, body {
     min-height:  4em;
 }
 
-.usage {
+#top .usage {
     font-size: 20px;
     writing-mode: vertical-rl;
     color: white;
     text-shadow: 0px 0px 10px rgba(0,0,0,1), 0px 0px 10px rgba(0,0,0,1);
-    height: 11em;
+    height: 12em;
     margin: 2em;
     margin-left: auto;
-    margin-right: auto;
 }
 
-#outer {
+#viewer #outer {
     position: relative;
     overflow: hidden;
     height: calc(20px * 42);
@@ -47,7 +61,7 @@ html, body {
     margin-right: auto;
 }
 
-#inner {
+#viewer #inner {
     font-size: 20px;
     font-family: "游明朝体", "Yu Mincho", YuMincho, serif;
     line-height: 1.0em;
@@ -142,11 +156,7 @@ input[type=text]:invalid {
     height: 4em;
 }
 
-.content {
-    width: 800px;
-    margin-left: auto;
-    margin-right: auto;
-}
+
 
 button {
     font-family: "游明朝体", "Yu Mincho", YuMincho, serif;
@@ -172,36 +182,37 @@ button[disabled] {
 .topmenu {
     position: relative;
     height: 30px;
+    display : flex;
 }
 
-#close {
+#viewer #close {
     font-size: 30px;
     opacity: 0.6;
     width: 30px;
     height: 30px;
-    position: absolute;;
-    left: 0px;
 }
 
-#close:hover {
+#viewer #close:hover {
     background-color: grey;
     font-weight: bold;
     opacity: 1.0;
 }
 
-#index {
+#viewer #index {
     font-size: 30px;
     opacity: 0.6;
     width: 30px;
     height: 30px;
-    position: absolute;;
-    right: 0px;
 }
 
-#index:hover {
+#viewer #index:hover {
     background-color: grey;
     font-weight: bold;
     opacity: 1.0;
+}
+
+#viewer #caption {
+    flex-grow: 1.0;
 }
 
 .notfound {
@@ -233,6 +244,11 @@ img.loading {
     margin: 10px;
 }
 
-.indexitem a {
+#viewer a {
+    color: rgba(100, 100, 255, 1.0);
     text-decoration: none;
+}
+
+#viewer a:hover {
+    text-decoration: underline;
 }

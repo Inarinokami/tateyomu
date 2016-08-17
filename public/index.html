@@ -4,14 +4,15 @@
         <meta charset="UTF-8">
         <link rel="stylesheet" type="text/css" href="/index.css">
         <script src="/index.js"></script>
+        <title>Tateyomu: 小説は、縦書きで読もう。</title>
     </head>
     <body>
 
         <div id="viewer">
             <div class="topmenu">
                 <div id="close">×</div>
-                <div id="index">三</div>
                 <div id="caption"></div>
+                <div id="index">三</div>
             </div>
             <div id="outer">
                 <div id="inner">（読み込み中……）</div>
@@ -28,7 +29,7 @@
                 <input
                     id="url"
                     type="text"
-                    placeholder="https://kakuyomu.jp/works/000000000000000000/episodes/000000000000000000/0000"
+                    placeholder="https://kakuyomu.jp/works/000000000000000000"
                     pattern="^https:\/\/kakuyomu\.jp\/works\/\d{19}(\/episodes/\d{19}$(\/\d{1,4})?)?$"
                     title="カクヨムの作品ページのＵＲＬではありません"
                     maxlength="79"
@@ -36,7 +37,14 @@
                 <button id="read" disabled>縦書きで読む</button>
                 <p class="usage">
                     【使いかた】<br>上のテキストボックスにカクヨム作品のＵＲＬを入力して、『縦書きで読む』ボタンを押してください。
-                    ドメイン部分を置き換えたＵＲＬでも直接エピソードにアクセスできます。
+                    エピソードのＵＲＬを入力すると、そのエピソードから読み始めることができます。
+                    <br>
+                    <br>
+
+                    【表示例】<br>
+                    <a href="/works/4852201425154905871">『横浜駅SF』</a><br>
+                    <a href="/works/4852201425154898017">『幼馴染の自動販売機にプロポーズした経緯について。』</a><br>
+
                 </p>
                 <p class="usage">
                     【操作】<br>
