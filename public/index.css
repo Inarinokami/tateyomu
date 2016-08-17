@@ -8,9 +8,14 @@
     src: url('/Yu+Mincho+Medium.otf') format('opentype');
 }
 
+@font-face {
+    font-family: 'Kokoro';
+    src: url('/Kokoro.otf') format('opentype');
+}
+
 html, body {
     overflow: hidden;
-    font-family: "游明朝体", "Yu Mincho", YuMincho, 'Yu+Mincho+Medium', 'Harenosora', serif;
+    font-family: "游明朝体", "Yu Mincho", YuMincho, "Kokoro", serif;
     margin: 0;
     width: 100%;
     height: 100%;
