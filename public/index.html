@@ -53,10 +53,15 @@
                     id="url"
                     type="text"
                     placeholder="https://kakuyomu.jp/works/000000000000000000"
-                    pattern="^https:\/\/kakuyomu\.jp\/works\/\d{19}(\/episodes/\d{19}$(\/\d{1,4})?)?$"
+                    pattern="^https:\/\/kakuyomu\.jp\/works\/\d{19}(\/episodes/\d{19}(\/\d{1,4})?)?$"
                     title="カクヨムの作品ページのＵＲＬを入力してください。"
                     maxlength="79"
                 ></input>
+
+                <div class="error">
+                    <span class="glyphicon glyphicon-warning-sign" aria-hidden="true"></span>作品データを取得できませんでした。ＵＲＬが間違っているかもしれません。
+                </div>
+
                 <button id="read" disabled>縦書きで読む</button>
 
                 <a href="https://twitter.com/share" class="twitter-share-button" data-url="https://tateyomu.herokuapp.com/" data-text="タテヨム | 小説は、縦書きで読もう。" data-lang="ja" data-size="large">ツイート</a> <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
@@ -117,10 +122,7 @@
             </div>
         </div>
 
-        <div class="notfound">
-            <h1>【四○四】</h1>
-            <p>ページが、見つかりません。</p>
-        </div>
+
 
         <img src="/ajax-loader.gif" class="loading"></img>
 
@@ -128,11 +130,9 @@
             if(window.location.pathname === "/"){
                 document.querySelector("#top").style["display"] = "block";
                 document.querySelector("#viewer").style["display"] = "none";
-                document.querySelector(".notfound").style["display"] = "none";
             }else{
                 document.querySelector("#top").style["display"] = "none";
                 document.querySelector("#viewer").style["display"] = "block";
-                document.querySelector(".notfound").style["display"] = "none";
                 document.querySelector("img.loading").style["display"] = "block";
             }
         </script>

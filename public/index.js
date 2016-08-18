@@ -37,6 +37,7 @@ window.addEventListener("load", function() {
                 }else{
                     console.log("Error: " + xhr.status);
                     closeLoading();
+                    document.querySelector(".error").style["visibility"] = "visible";
                 }
             }
         };
@@ -205,6 +206,8 @@ window.addEventListener("load", function() {
 
                 get(`/raw/works${path}`, function(responseText){
 
+                    showViewer();
+
                     var parser = new DOMParser();
                     var doc = parser.parseFromString(responseText, "text/html");
                     var episodeBody = doc.querySelector(".widget-episodeBody");
@@ -224,7 +227,6 @@ window.addEventListener("load", function() {
 
                     viewer.style["display"] = "block";
                     top.style["display"] = "none";
-                    notfound.style["display"] = "none";
                     history.pushState(null, null, "/works" + path + "/" + (page + 1));
                     update();
 
@@ -247,9 +249,11 @@ window.addEventListener("load", function() {
 
                 workID = matches[1];
                 episodeID = null;
-                    showViewer();
+
                 // index
                 get(`/raw/works/${workID}`, function(responseText){
+
+                    showViewer();
 
                     var parser = new DOMParser();
                     var doc = parser.parseFromString(responseText, "text/html");
@@ -360,7 +364,6 @@ window.addEventListener("load", function() {
     var index = document.querySelector("#index");
     var viewer = document.querySelector("#viewer");
     var top = document.querySelector("#top");
-    var notfound = document.querySelector(".notfound");
     var read = document.querySelector("#read");
 
     read.addEventListener("click", function() {
@@ -451,6 +454,7 @@ window.addEventListener("load", function() {
     });
 
     document.querySelector("#go-to-index").addEventListener("click", function() {
+        showLoading();
         route(`/works/${workID}`);
     });
 
@@ -503,10 +507,16 @@ window.addEventListener("load", function() {
         }
     });
 
+    document.querySelector("input#url").addEventListener("keydown", function(e){
+        setTimeout(function(){
+            update();
+            document.querySelector(".error").style["visibility"] = "hidden";
+        }, 0)
+    });
+
     function showTopPage(){
         top.style["display"] = "block";
         viewer.style["display"] = "none";
-        notfound.style["display"] = "none";
         //if(window.location.pathname !== "/"){
         //    history.pushState(null, null, "/");
         //}
@@ -533,6 +543,14 @@ window.addEventListener("load", function() {
     function isLoading(){
         return document.querySelector("img.loading").style["display"] === "block"
     }
+
+    function showError(){
+        top.style["-webkit-filter"] = "blur(5px)";
+        viewer.style["-webkit-filter"] = "blur(5px)";
+        document.querySelector(".error").style["display"] = "block";
+    }
+
+
 
     route(window.location.pathname);
 });

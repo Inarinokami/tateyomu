@@ -190,16 +190,12 @@ body {
     text-decoration: underline;
 }
 
-.notfound {
-    display: none;
-}
-
 #viewer .page {
     flex-direction: row;
     align-items: stretch;
 
     overflow: hidden;
-    font-size: 20px; 
+    font-size: 20px;
     line-height: 1.6em;
     position: absolute;
 
@@ -251,4 +247,12 @@ img.loading {
     margin: auto;
     width: 66px;
     height: 66px;
+}
+
+div.error {
+    visibility: hidden;
+    font-size: small;
+    color: red;
+    text-shadow: 0 0 4px rgba(0, 0, 0, 1), 0 0 4px rgba(0, 0, 0, 1);
+    text-align: center;
 }
