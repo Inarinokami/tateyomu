@@ -24,20 +24,25 @@ function halfToFull(text){
     })
 }
 
-function get(url, callback){
-    var xhr = new XMLHttpRequest();
-    xhr.onreadystatechange = function() {
-        if (xhr.readyState == 4) { // DONE
-            if (xhr.status == 200) { // OK
-                callback(xhr.responseText);
-            }
-        }
-    };
-    xhr.open("GET", url);
-    xhr.send();
-}
+
 
 window.addEventListener("load", function() {
+
+    function get(url, callback){
+        var xhr = new XMLHttpRequest();
+        xhr.onreadystatechange = function() {
+            if (xhr.readyState == 4) { // DONE
+                if (xhr.status == 200 || xhr.status == 304) { // OK
+                    callback(xhr.responseText);
+                }else{
+                    console.log("Error: " + xhr.status);
+                    closeLoading();
+                }
+            }
+        };
+        xhr.open("GET", url);
+        xhr.send();
+    }
 
     function resize(){
         outer.style["transform"] = `scale(1.0)`;
@@ -181,9 +186,9 @@ window.addEventListener("load", function() {
         resize();
     }
 
-    function load(episodeURL) {
+    function route(contentPath) {
 
-        var matches = /^\/works\/(\d{19})(\/episodes\/(\d{19})(\/(\d{1,4}|last))?)?$/.exec(episodeURL);
+        var matches = /^\/works\/(\d{19})(\/episodes\/(\d{19})(\/(\d{1,4}|last))?)?$/.exec(contentPath);
 
         if(matches && matches[2]){
 
@@ -224,9 +229,7 @@ window.addEventListener("load", function() {
                     history.pushState(null, null, "/works" + path + "/" + (page + 1));
                     update();
 
-
-                    viewer.style["-webkit-filter"] = "none";
-                    document.querySelector("img.loading").style["display"] = "none";
+                    closeLoading();
                 });
             }else{
                 // just move to the page
@@ -239,73 +242,87 @@ window.addEventListener("load", function() {
 
 
         }else{
-            var matches = /^\/works\/(\d{19})(\/index(\/(\d{1,4}))?)?$/.exec(episodeURL);
-            workID = matches[1];
-            episodeID = null;
+            var matches = /^\/works\/(\d{19})(\/index(\/(\d{1,4}|last))?)?$/.exec(contentPath);
 
-            // index
-            get(`/raw/works/${workID}`, function(responseText){
+            if(matches){
 
-                var parser = new DOMParser();
-                var doc = parser.parseFromString(responseText, "text/html");
-                var episodes = doc.querySelectorAll(".widget-toc-items .widget-toc-episode");
+                workID = matches[1];
+                episodeID = null;
+                    showViewer();
+                // index
+                get(`/raw/works/${workID}`, function(responseText){
 
-                var h1 = document.createElement("h1");
-                h1.textContent = "目次";
+                    var parser = new DOMParser();
+                    var doc = parser.parseFromString(responseText, "text/html");
+                    var episodes = doc.querySelectorAll(".widget-toc-items .widget-toc-episode");
 
-                var contents = document.createElement("div");
-                contents.appendChild(h1);
+                    var h1 = document.createElement("h1");
+                    h1.textContent = doc.querySelector("#workTitle a").textContent;
 
-                for(var i = 0; i < episodes.length; i++){
-                    (function(){
-                        var episode = episodes[i];
-                        var url = episode.querySelector("a").getAttribute("href");
+                    var author = document.createElement("p");
+                    author.classList.add("author");
+                    author.textContent = doc.querySelector("#workAuthor-activityName a").textContent;
 
-                        var a = document.createElement("a");
-                        a.setAttribute("href", url);
-                        a.textContent = halfToFull(episode.querySelector(".widget-toc-episode-titleLabel").textContent);
-                        a.addEventListener("click", function(e){
-                            load(url);
-                            e.preventDefault();
-                            e.stopPropagation();
-                        });
+                    var h2 = document.createElement("h2");
+                    h2.textContent = "目次";
 
-                        var div = document.createElement("div");
-                        div.classList.add("indexitem");
-                        div.appendChild(a);
+                    var contents = document.createElement("div");
+                    contents.appendChild(h1);
+                    contents.appendChild(author);
+                    contents.appendChild(h2);
 
-                        contents.appendChild(div);
-                    })();
-                }
 
-                clearPages();
-                paging(contents);
+                    for(var i = 0; i < episodes.length; i++){
+                        (function(){
+                            var episode = episodes[i];
+                            var url = episode.querySelector("a").getAttribute("href");
 
-                if(matches && matches[4]){
-                    page = Math.max(0, Math.min(outer.childNodes.length - 1, parseInt(matches[4]) - 1));
-                }else{
-                    page = 0;
-                }
+                            var a = document.createElement("a");
+                            a.setAttribute("href", url);
+                            a.textContent = halfToFull(episode.querySelector(".widget-toc-episode-titleLabel").textContent);
+                            a.addEventListener("click", function(e){
+                                route(url);
+                                e.preventDefault();
+                                e.stopPropagation();
+                            });
 
-                resize();
-                update();
-                history.pushState(null, null, "/works/" + workID + "/index/" + page);
+                            var div = document.createElement("div");
+                            div.classList.add("indexitem");
+                            div.appendChild(a);
 
-                viewer.style["display"] = "block";
-                top.style["display"] = "none";
-                notfound.style["display"] = "none";
-                document.querySelector("img.loading").style["display"] = "none";
-            });
+                            contents.appendChild(div);
+                        })();
+                    }
+
+                    clearPages();
+                    paging(contents);
+
+                    if(matches && matches[4] === "last"){
+                        page = outer.childNodes.length - 1;
+                    }else if(matches && matches[4]){
+                        page = Math.max(0, Math.min(outer.childNodes.length - 1, parseInt(matches[4]) - 1));
+                    }else{
+                        page = 0;
+                    }
+
+
+                    resize();  // caution: do resize after showing
+                    update();
+                    history.pushState(null, null, "/works/" + workID + "/index/" + page);
+                    closeLoading();
+                });
+
+            }else{
+                showTopPage();
+            }
         }
     }
 
     function home(){
-        top.style["display"] = "block";
-        viewer.style["display"] = "none";
-        notfound.style["display"] = "none";
+        document.querySelector("#url").value = "https://kakuyomu.jp" + window.location.pathname;
+        showTopPage();
         history.pushState(null, null, "/");
     }
-
 
     function update() {
         if (urlInput.value.match(/^https:\/\/kakuyomu\.jp\/works\/\d{19}(\/episodes\/\d{19}(\/\d{1,4})?)?$/)) {
@@ -323,10 +340,6 @@ window.addEventListener("load", function() {
             inner.style["left"] = i >= page ? "0px" : "1000px";
             inner.style["top"] = "0px"
         }
-
-
-
-        //document.querySelector("#caption").textContent = `${page + 1} / ${outer.childNodes.length}`;
     }
 
 
@@ -353,7 +366,8 @@ window.addEventListener("load", function() {
     var read = document.querySelector("#read");
 
     read.addEventListener("click", function() {
-        load(urlInput.value.slice("https://kakuyomu.jp".length));
+        showLoading();
+        route(urlInput.value.slice("https://kakuyomu.jp".length));
     });
 
     document.addEventListener("cut",  function(e){
@@ -369,8 +383,11 @@ window.addEventListener("load", function() {
     urlInput.addEventListener("change", update);
 
     outer.addEventListener("click", function(e){
-        if(e.clientY < window.innerHeight * 0.3){
+        var bounds = outer.getBoundingClientRect();
+        if(e.clientY < bounds.height * 0.3){
             document.querySelector(".topmenu").style["left"] = "0px";
+        }else if(bounds.width * 0.75 < e.clientX - bounds.left){
+            goto(page - 1);
         }else{
             goto(page + 1);
         }
@@ -378,40 +395,43 @@ window.addEventListener("load", function() {
 
     function goto(dest) {
 
-        if(document.querySelector("img.loading").style["display"] !== "block"){
+        if(viewer.style["display"] === "block" && ! isLoading()){
 
             if(dest === -1 || dest === outer.childNodes.length){
-                viewer.style["-webkit-filter"] = "blur(5px)";
-                document.querySelector("img.loading").style["display"] = "block";
 
-                get(`/raw/works/${workID}`, function(responseText){
-                    var parser = new DOMParser();
-                    var doc = parser.parseFromString(responseText, "text/html");
-                    var episodes = doc.querySelectorAll(".widget-toc-items .widget-toc-episode a");
+                if(episodeID === null && dest === -1){
+                    // beginning end of the work
+                }else if(episodeID !== null && dest === -1){
+                    showLoading();
+                    route(`/works/${workID}/index/last`);
+                }else{
+                    showLoading();
+                    get(`/raw/works/${workID}`, function(responseText){
+                        var parser = new DOMParser();
+                        var doc = parser.parseFromString(responseText, "text/html");
+                        var episodes = doc.querySelectorAll(".widget-toc-items .widget-toc-episode a");
 
-                    if(episodeID === null){
-                        load(episodes[i].getAttribute("href"));
-                    }else{
-                        for(var i = 0; i < episodes.length; i++){
-                            var episode = episodes[i];
-                            if(episode.getAttribute("href") === `/works/${workID}/episodes/${episodeID}`){
-                                if(0 < i && dest === -1){
-                                    var nextEpisode = episodes[i - 1];
-                                    load(nextEpisode.getAttribute("href") + "/last");
-                                }else if(i < episodes.length - 1 && dest === outer.childNodes.length){
-                                    var nextEpisode = episodes[i + 1];
-                                    load(nextEpisode.getAttribute("href"));
-                                }else{
-                                    // end of work
-                                    viewer.style["-webkit-filter"] = "none";
-                                    document.querySelector("img.loading").style["display"] = "none";
+                        if(episodeID === null && dest === outer.childNodes.length){
+                            // beginning of the main texts
+                            route(episodes[0].getAttribute("href"));
+                        }else {
+                            for(var i = 0; i < episodes.length; i++){
+                                var episode = episodes[i];
+                                if(episode.getAttribute("href") === `/works/${workID}/episodes/${episodeID}`){
+                                    if(0 < i && dest === -1){
+                                        route(episodes[i - 1].getAttribute("href") + "/last");
+                                    }else if(i < episodes.length - 1 && dest === outer.childNodes.length){
+                                        route(episodes[i + 1].getAttribute("href"));
+                                    }else{
+                                        // terminative end of the work
+                                        closeLoading();
+                                    }
+                                    break;
                                 }
-
-                                break;
                             }
                         }
-                    }
-                });
+                    });
+                }
             }else{
                 var nextPage = Math.max(0, Math.min(outer.childNodes.length - 1, dest === "last" ? outer.childNodes.length - 1 : dest));
                 if(nextPage != page){
@@ -433,7 +453,15 @@ window.addEventListener("load", function() {
     });
 
     document.querySelector("#go-to-index").addEventListener("click", function() {
-        load(`/works/${workID}`);
+        route(`/works/${workID}`);
+    });
+
+    document.querySelector("#go-next").addEventListener("click", function() {
+        goto(page + 1);
+    });
+
+    document.querySelector("#go-back").addEventListener("click", function() {
+        goto(page - 1);
     });
 
     document.querySelector("#fullscreen").addEventListener("click", function() {
@@ -455,7 +483,7 @@ window.addEventListener("load", function() {
     });
 
     window.addEventListener("popstate", function(e) {
-        route();
+        route(window.location.pathname);
     });
 
     window.addEventListener("resize", function(e) {
@@ -469,20 +497,36 @@ window.addEventListener("load", function() {
         }
     });
 
-    function route(){
-        if(window.location.pathname === "/"){
-            top.style["display"] = "block";
-            viewer.style["display"] = "none";
-            notfound.style["display"] = "none";
-        }else{
-            var matches = /^\/works\/(\d{19})((\/episodes\/(\d{19})(\/(\d{1,4}|last))?)|\/index(\/\d{1,4})?)?$/.exec(window.location.pathname);
-            if(matches){
-                load(window.location.pathname);
-            }else{
-                //404
-            }
-        }
+    function showTopPage(){
+        top.style["display"] = "block";
+        viewer.style["display"] = "none";
+        notfound.style["display"] = "none";
+        //if(window.location.pathname !== "/"){
+        //    history.pushState(null, null, "/");
+        //}
+        closeLoading();
     }
 
-    route();
+    function showViewer(){
+        viewer.style["display"] = "block";
+        top.style["display"] = "none";
+    }
+
+    function showLoading(){
+        top.style["-webkit-filter"] = "blur(5px)";
+        viewer.style["-webkit-filter"] = "blur(5px)";
+        document.querySelector("img.loading").style["display"] = "block";
+    }
+
+    function closeLoading(){
+        top.style["-webkit-filter"] = "none";
+        viewer.style["-webkit-filter"] = "none";
+        document.querySelector("img.loading").style["display"] = "none";
+    }
+
+    function isLoading(){
+        return document.querySelector("img.loading").style["display"] === "block"
+    }
+
+    route(window.location.pathname);
 });
