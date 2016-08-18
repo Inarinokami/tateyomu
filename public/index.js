@@ -46,21 +46,23 @@ window.addEventListener("load", function() {
 
     function resize(){
         outer.style["transform"] = `scale(1.0)`;
-        var pageWidth = 0;
-        var pageHeight = 0;
+        pageWidth = 0;
+        pageHeight = 0;
         for(var i = 0; i < outer.childNodes.length; i++){
             var rect = outer.childNodes[i].getBoundingClientRect();
             pageWidth = Math.max(pageWidth, rect.width);
             pageHeight = Math.max(pageHeight, rect.height);
         }
-        for(var i = 0; i < outer.childNodes.length; i++){
-            var page = outer.childNodes[i];
-            page.style["width"] = pageWidth + "px";
-            page.style["height"] = pageHeight + "px";
-        }
+        //for(var i = 0; i < outer.childNodes.length; i++){
+            //var page = outer.childNodes[i];
+            //page.style["width"] = pageWidth + "px";
+            //page.style["height"] = pageHeight + "px";
+        //}
+        //outer.style["width"] = pageWidth + "px";
+        //outer.style["height"] = pageHeight + "px";
         var scaleY = window.innerHeight / pageHeight;
         var scaleX = window.innerWidth / pageWidth;
-        var scale = Math.min(scaleX, scaleY);
+        scale = Math.min(scaleX, scaleY);
         outer.style["transform"] = `scale(${scale})`;
         outer.style["transform-origin"] = scaleX > scaleY ? "50% 0%" : "0% 50%";
     }
@@ -125,11 +127,17 @@ window.addEventListener("load", function() {
             }
         }
 
+        //debugger;
+
+        var contentBounds = getLastPage().querySelector(".content").getBoundingClientRect();
+        getLastPage().querySelector(".content").style["width"] = "auto";
+
         while(episodeBody.childNodes.length > 0){
-            var content = getLastPage().querySelector(".content");
+            var lastPage = getLastPage();
+            var content = lastPage.querySelector(".content");
             content.appendChild(episodeBody.childNodes[0]);
-            var bounds = getLastPage().getBoundingClientRect();
-            if(bounds.height < bounds.width * pageAspectRatio){
+            var bounds = content.getBoundingClientRect();
+            if(contentBounds.width < bounds.width){
 
                 var paragraph = content.childNodes[content.childNodes.length - 1];
                 content.removeChild(paragraph);
@@ -141,13 +149,13 @@ window.addEventListener("load", function() {
                 while(paragraph.childNodes.length > 0){
                     var e = paragraph.childNodes[0];
                     p.appendChild(e);
-                    var bounds = getLastPage().getBoundingClientRect();
-                    if(bounds.height < bounds.width * pageAspectRatio){
+                    var bounds = content.getBoundingClientRect();
+                    if(contentBounds.width < bounds.width){
                         if(e.nodeType === Node.TEXT_NODE){
                             var remainText = "";
                             while(e.textContent.length > 0){
-                                var bounds = getLastPage().getBoundingClientRect();
-                                if(bounds.width * pageAspectRatio < bounds.height){
+                                var bounds = content.getBoundingClientRect();
+                                if(bounds.width < contentBounds.width){
                                     break;
                                 }else{
                                     var lastChar = e.textContent[e.textContent.length - 1];
@@ -179,8 +187,14 @@ window.addEventListener("load", function() {
 
                 if(episodeBody.childNodes.length > 0){
                     appendBlankPage();
+                    getLastPage().querySelector(".content").style["width"] = "auto";
                 }
             }
+        }
+
+        var contents = outer.querySelectorAll(".content");
+        for(var i = 0; i < contents.length; i++){
+            contents[i].style["width"] = "";
         }
 
         resize();
@@ -286,11 +300,11 @@ window.addEventListener("load", function() {
                                 e.stopPropagation();
                             });
 
-                            var div = document.createElement("div");
-                            div.classList.add("indexitem");
-                            div.appendChild(a);
+                            var p = document.createElement("p");
+                            p.classList.add("indexitem");
+                            p.appendChild(a);
 
-                            contents.appendChild(div);
+                            contents.appendChild(p);
                         })();
                     }
 
@@ -331,13 +345,15 @@ window.addEventListener("load", function() {
             read.setAttribute("disabled", "");
         }
 
+        var pageBoudns = outer.getBoundingClientRect();
+
         var inners = outer.querySelectorAll("div#outer > div");
         for(var i = 0; i < inners.length; i++){
             var inner = inners[i];
-            inner.style["display"] = page - 2 <= i && i <= page + 2 ? "flex" : "none";
+            inner.style["display"] = page - 2 <= i && i <= page + 2 ? "block" : "none";
             inner.style["z-index"] = -i;
-            inner.style["position"] = page === i ? "relative" : "absolute";
-            inner.style["left"] = i >= page ? "0px" : "1000px";
+            /*inner.style["position"] = page === i ? "relative" : "absolute";*/
+            inner.style["left"] = i >= page ? "0px" : (pageBoudns.width + 200 + "px");
             inner.style["top"] = "0px"
         }
     }
@@ -350,6 +366,10 @@ window.addEventListener("load", function() {
     var path = "";
     var workID = "";
     var episodeID = "";
+
+    var pageWidth = 0;
+    var pageHeight = 0;
+    var scale = 1.0;
 
     var outer = document.querySelector("div#outer");
 

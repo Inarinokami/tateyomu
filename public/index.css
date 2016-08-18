@@ -118,15 +118,13 @@ body {
 #viewer #outer {
     position: relative;
     overflow: hidden;
-    /* height: calc(20px + 20px * 42 + 20px); */
-    /* width: calc( (1em + 0.5em) * 18); */
-    writing-mode: vertical-rl;
-    text-align: left;
-    /*background-color: #eee;*/
     margin-left: auto;
     margin-right: auto;
-
     border: solid 1px #ddd;
+    width: calc(20px + 28em + 20px);
+    height: calc(20px + 20px + 42em + 20px);
+
+    font-size: 20px;
 }
 
 #viewer #outer p {
@@ -134,57 +132,26 @@ body {
     padding: 0;
 }
 
-ruby {
+#viewer ruby {
     margin: 0;
     padding: 0;
 }
 
-rt {
+#viewer rt {
     margin: 0;
     padding: 0;
-    font-size: 10px;
-    /* smallest size is 10px in chrome */
-}
-
-#viewer #next {
-    position: absolute;
-    left: 0px;
-    top: 0px;
-    border: solid 1px black;
-    background-color: white;
-    width: 30%;
-    height: 100%;
-    opacity: 0.0;
-}
-
-#viewer #next:hover {
-    opacity: 0.4;
-}
-
-#viewer #prev {
-    position: absolute;
-    right: 0px;
-    top: 0px;
-    border: solid 1px black;
-    background-color: white;
-    width: 30%;
-    height: 100%;
-    opacity: 0.0;
-}
-
-#viewer #prev:hover {
-    opacity: 0.4;
+    font-size: 10px; /* smallest size is 10px in chrome */
 }
 
 #viewer .topmenu {
     position: absolute;
     top: 0px;
     left: -500px;
-    background-color: white;
-    border: solid 1px grey;
-
     margin: 20px;
     padding: 8px;
+
+    background-color: white;
+    border: solid 1px grey;
 
     transition-property: left;
     transition-duration: 0.3s;
@@ -210,7 +177,7 @@ rt {
     margin-top: 4em;
 }
 
-.indexitem {
+#viewer .indexitem {
     margin: 10px;
 }
 
@@ -227,36 +194,15 @@ rt {
     display: none;
 }
 
-#caption {
-    text-align: center;
-    opacity: 0.5;
-}
-
-#viewer #outer > div {
-
-
-
-    -webkit-touch-callout: none;
-    -webkit-user-select: none;
-    -khtml-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
-    user-select: none;
-
-
-}
-
-
 #viewer .page {
-    height: 42em;
-    display: flex;
+    /* display: flex; */
     flex-direction: row;
     align-items: stretch;
 
     overflow: hidden;
     font-size: 20px;
     line-height: 1.6em;
-    position: relative;
+    position: absolute;
 
     box-shadow: 0px 0px 30px 30px rgba(0, 0, 0, 0.3);
     background-color: white;
@@ -269,22 +215,20 @@ rt {
 
 #viewer .page .header {
     width: 4em;
-    height: 1.8em;
-    flex-grow: 0.0;
-    /* background-color: grey; */
-    writing-mode: horizontal-tb;
-    text-align: right;
+    height: 10px;
+    text-align: left;
     padding: 0px;
     margin-bottom: 10px;
-    margin-right: 20px;
+    margin-left: 20px;
     opacity: 0.5;
     font-size: small;
 }
 
 #viewer .page .content {
     flex-grow: 1.0;
+    height: 42em;
+    width: 28em;
     writing-mode: vertical-rl;
-    text-align: left;
 }
 
 #viewer .page .content h1 {
