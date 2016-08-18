@@ -338,7 +338,7 @@ window.addEventListener("load", function() {
             inner.style["display"] = page - 2 <= i && i <= page + 2 ? "block" : "none";
             inner.style["z-index"] = -i;
             /*inner.style["position"] = page === i ? "relative" : "absolute";*/
-            inner.style["left"] = i >= page ? "0px" : (pageBoudns.width + 200 + "px");
+            inner.style["left"] = i >= page ? "0px" : (pageBoudns.right + 200 + "px");
             inner.style["top"] = "0px"
         }
     }
@@ -466,12 +466,20 @@ window.addEventListener("load", function() {
         if(document.webkitFullscreenEnabled){
             if(document.webkitFullscreenElement){
                 document.webkitExitFullscreen();
-                delete document.body.style["width"];
-                delete document.body.style["height"];
             }else{
-                document.body.style["width"] = "100%";
-                document.body.style["height"] = "100%";
                 document.body.webkitRequestFullscreen();
+            }
+        }else if(document.mozFullScreenEnabled){
+            if(document.mozFullscreenElement){
+                document.mozExitFullscreen();
+            }else{
+                document.body.mozRequestFullscreen();
+            }
+        }else if(document.fullScreenEnabled){
+            if(document.fullscreenElement){
+                document.exitFullscreen();
+            }else{
+                document.body.requestFullscreen();
             }
         }
     });
