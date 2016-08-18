@@ -46,23 +46,10 @@ window.addEventListener("load", function() {
 
     function resize(){
         outer.style["transform"] = `scale(1.0)`;
-        pageWidth = 0;
-        pageHeight = 0;
-        for(var i = 0; i < outer.childNodes.length; i++){
-            var rect = outer.childNodes[i].getBoundingClientRect();
-            pageWidth = Math.max(pageWidth, rect.width);
-            pageHeight = Math.max(pageHeight, rect.height);
-        }
-        //for(var i = 0; i < outer.childNodes.length; i++){
-            //var page = outer.childNodes[i];
-            //page.style["width"] = pageWidth + "px";
-            //page.style["height"] = pageHeight + "px";
-        //}
-        //outer.style["width"] = pageWidth + "px";
-        //outer.style["height"] = pageHeight + "px";
-        var scaleY = window.innerHeight / pageHeight;
-        var scaleX = window.innerWidth / pageWidth;
-        scale = Math.min(scaleX, scaleY);
+        var bounds = outer.getBoundingClientRect();
+        var scaleY = window.innerHeight / bounds.height;
+        var scaleX = window.innerWidth / bounds.width;
+        var scale = Math.min(scaleX, scaleY);
         outer.style["transform"] = `scale(${scale})`;
         outer.style["transform-origin"] = scaleX > scaleY ? "50% 0%" : "0% 50%";
     }
@@ -126,8 +113,6 @@ window.addEventListener("load", function() {
                 }
             }
         }
-
-        //debugger;
 
         var contentBounds = getLastPage().querySelector(".content").getBoundingClientRect();
         getLastPage().querySelector(".content").style["width"] = "auto";
@@ -367,22 +352,15 @@ window.addEventListener("load", function() {
     var workID = "";
     var episodeID = "";
 
-    var pageWidth = 0;
-    var pageHeight = 0;
-    var scale = 1.0;
-
     var outer = document.querySelector("div#outer");
-
     var next = document.querySelector("div#next");
     var prev = document.querySelector("div#prev");
     var urlInput = document.querySelector("input#url");
     var close = document.querySelector("#close");
     var index = document.querySelector("#index");
-
     var viewer = document.querySelector("#viewer");
     var top = document.querySelector("#top");
     var notfound = document.querySelector(".notfound");
-
     var read = document.querySelector("#read");
 
     read.addEventListener("click", function() {
