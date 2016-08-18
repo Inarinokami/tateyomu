@@ -1,3 +1,5 @@
+"use strict";
+
 var request = require('request');
 var http = require('http');
 var express = require('express');
@@ -40,5 +42,5 @@ app.get(/.*/, function(req, res) {
 });
 
 var server = app.listen(process.env.PORT || 8080, function() {
-    console.log(`listening at http://localhost:${server.address().port}`);
+    console.log(`listening at port ${server.address().port}`);
 });

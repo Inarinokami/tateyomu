@@ -4,9 +4,10 @@
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width">
         <link rel="stylesheet" type="text/css" href="/index.css">
+        <link rel="stylesheet" type="text/css" href="/bootstrap/css/bootstrap.css">
         <link rel="icon" type="image/png" href="favicon.png">
         <script src="/index.js"></script>
-        <title>Tateyomu: 小説は、縦書きで読もう。</title>
+        <title>タテヨム: 小説は、縦書きで読もう。</title>
 
         <meta name="twitter:card" content="summary_large_image">
         <meta name="twitter:title" content="Tateyomu | 小説は、縦書きで読もう。">
@@ -17,13 +18,24 @@
     <body>
 
         <div id="viewer">
-            <div class="topmenu">
-                <div id="close">×</div>
-                <div id="caption"></div>
-                <div id="index">三</div>
-            </div>
             <div id="outer"></div>
-
+            <div class="topmenu">
+                <div class="menu-item" id="go-home">
+                    <span class="glyphicon glyphicon-home" aria-hidden="true"></span>トップページへ戻る
+                </div>
+                <div class="menu-item" id="go-to-index">
+                    <span class="glyphicon glyphicon-option-vertical" aria-hidden="true"></span>作品の目次を見る
+                </div>
+                <div class="menu-item" id="go-back">
+                    <span class="glyphicon glyphicon-arrow-right" aria-hidden="true"></span>前のページへ戻る
+                </div>
+                <div class="menu-item" id="fullscreen">
+                    <span class="glyphicon glyphicon-fullscreen" aria-hidden="true"></span>全画面表示を切り替える
+                </div>
+                <div class="menu-item" id="close-menu">
+                    <span class="glyphicon glyphicon-remove-circle" aria-hidden="true"></span>メニューを閉じる
+                </div>
+            </div>
         </div>
 
         <div id="top">
@@ -31,6 +43,9 @@
             <div class="content">
 
                 <h1>小説は、縦書きで読もう。</h1>
+
+                <p class="service-title">小説縦書き変換サービス　タテヨム</p>
+
                 <input
                     id="url"
                     type="text"
@@ -41,19 +56,19 @@
                 ></input>
                 <button id="read" disabled>縦書きで読む</button>
 
-                <a href="https://twitter.com/share" class="twitter-share-button" data-url="https://tateyomu.herokuapp.com/" data-text="Tateyomu | 小説は、縦書きで読もう。" data-lang="ja" data-size="large">ツイート</a> <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
+                <a href="https://twitter.com/share" class="twitter-share-button" data-url="https://tateyomu.herokuapp.com/" data-text="タテヨム | 小説は、縦書きで読もう。" data-lang="ja" data-size="large">ツイート</a> <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
 
                 <hr>
 
                 <p class="usage">
-                    【使いかた】<br>カクヨム作品を縦書き表示・ページ送り操作で閲覧できるサービスです。上のテキストボックスにカクヨム作品のＵＲＬを入力して、『縦書きで読む』ボタンを押してください。
+                    【使いかた】<br>カクヨム作品を縦書き表示・ページ送り操作で閲覧できる非公式サービスです。上のテキストボックスにカクヨム作品のＵＲＬを入力して、『縦書きで読む』ボタンを押してください。
                     エピソードのＵＲＬを入力すると、そのエピソードから読み始めることもできます。
                     <br>
                     <br>
 
                     【表示例】<br>
-                    <a href="/works/4852201425154905871">『横浜駅ＳＦ』</a><br>
-                    <a href="/works/4852201425154898017">『幼馴染の自動販売機にプロポーズした経緯について。』</a><br>
+                    <a href="/works/4852201425154905871">●『横浜駅ＳＦ』</a><br>
+                    <a href="/works/4852201425154898017">●『幼馴染の自動販売機にプロポーズした経緯について。』</a><br>
 
                 </p>
 
@@ -61,6 +76,8 @@
 
                 <p class="usage">
                     【操作・デスクトップ版】<br>
+                    ページ下部をクリック…次のページヘ<br>
+                    ページ上部をクリック…メニューを開く</br>
                     ↑　前のページ<br>
                     ↓　次のページ<br>
                     ←　前のエピソード<br>
@@ -80,6 +97,15 @@
                     <br>
                     【更新履歴】<br>
                     ・平成二十八年八月十七日、試作第壱版公開<br>
+                    <br>
+                    【今後の予定】<br>
+                    ・文字と背景の色の設定<br>
+                    ・文字サイズの変更<br>
+                    ・epub変換機能の移植<br>
+                    ・バックアップ機能の移植<br>
+                    <br>
+                    【注意事項】<br>
+                    このサービスは『カクヨム』が提供するものではありません。『カクヨム』に対してこのサービスに関するお問い合わせをしないようにお願いします。<br>
                 </p>
 
             </div>
