@@ -28,21 +28,28 @@ function halfToFull(text){
 
 window.addEventListener("load", function() {
 
+    var cacheTable = {};
+
     function get(url, callback){
-        var xhr = new XMLHttpRequest();
-        xhr.onreadystatechange = function() {
-            if (xhr.readyState == 4) { // DONE
-                if (xhr.status == 200 || xhr.status == 304) { // OK
-                    callback(xhr.responseText);
-                }else{
-                    console.log("Error: " + xhr.status);
-                    closeLoading();
-                    document.querySelector(".error").style["visibility"] = "visible";
+        if(cacheTable[url]){
+            callback(cacheTable[url]);
+        }else{
+            var xhr = new XMLHttpRequest();
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState == 4) { // DONE
+                    if (xhr.status == 200 || xhr.status == 304) { // OK
+                        cacheTable[url] = xhr.responseText;
+                        callback(xhr.responseText);
+                    }else{
+                        console.log("Error: " + xhr.status);
+                        closeLoading();
+                        document.querySelector(".error").style["visibility"] = "visible";
+                    }
                 }
-            }
-        };
-        xhr.open("GET", url);
-        xhr.send();
+            };
+            xhr.open("GET", url);
+            xhr.send();
+        }
     }
 
     function resize(){
@@ -252,73 +259,79 @@ window.addEventListener("load", function() {
 
                 // index
                 get(`/raw/works/${workID}`, function(responseText){
-
-                    showViewer();
-
-                    var parser = new DOMParser();
-                    var doc = parser.parseFromString(responseText, "text/html");
-                    var episodes = doc.querySelectorAll(".widget-toc-items .widget-toc-episode");
-
-                    var h1 = document.createElement("h1");
-                    h1.textContent = doc.querySelector("#workTitle a").textContent;
-
-                    var author = document.createElement("p");
-                    author.classList.add("author");
-                    author.textContent = doc.querySelector("#workAuthor-activityName a").textContent;
-
-                    var h2 = document.createElement("h2");
-                    h2.textContent = "目次";
-
-                    var contents = document.createElement("div");
-                    contents.appendChild(h1);
-                    contents.appendChild(author);
-                    contents.appendChild(h2);
-
-
-                    for(var i = 0; i < episodes.length; i++){
-                        (function(){
-                            var episode = episodes[i];
-                            var url = episode.querySelector("a").getAttribute("href");
-
-                            var a = document.createElement("a");
-                            a.setAttribute("href", url);
-                            a.textContent = halfToFull(episode.querySelector(".widget-toc-episode-titleLabel").textContent);
-                            a.addEventListener("click", function(e){
-                                route(url);
-                                e.preventDefault();
-                                e.stopPropagation();
-                            });
-
-                            var p = document.createElement("p");
-                            p.classList.add("indexitem");
-                            p.appendChild(a);
-
-                            contents.appendChild(p);
-                        })();
-                    }
-
-                    clearPages();
-                    paging(contents);
-
-                    if(matches && matches[4] === "last"){
-                        page = outer.childNodes.length - 1;
-                    }else if(matches && matches[4]){
-                        page = Math.max(0, Math.min(outer.childNodes.length - 1, parseInt(matches[4]) - 1));
-                    }else{
-                        page = 0;
-                    }
-
-
-                    resize();  // caution: do resize after showing
-                    update();
-                    history.pushState(null, null, "/works/" + workID + "/index/" + page);
-                    closeLoading();
+                    renderIndexPage(responseText, matches[4]);
                 });
 
             }else{
                 showTopPage();
             }
         }
+    }
+
+    function renderIndexPage(responseText, indexPage){
+
+        showViewer();
+
+        episodeID = null;
+
+        var parser = new DOMParser();
+        var doc = parser.parseFromString(responseText, "text/html");
+        var episodes = doc.querySelectorAll(".widget-toc-items .widget-toc-episode");
+
+        var h1 = document.createElement("h1");
+        h1.textContent = doc.querySelector("#workTitle a").textContent;
+
+        var author = document.createElement("p");
+        author.classList.add("author");
+        author.textContent = doc.querySelector("#workAuthor-activityName a").textContent;
+
+        var h2 = document.createElement("h2");
+        h2.textContent = "目次";
+
+        var contents = document.createElement("div");
+        contents.appendChild(h1);
+        contents.appendChild(author);
+        contents.appendChild(h2);
+
+
+        for(var i = 0; i < episodes.length; i++){
+            (function(){
+                var episode = episodes[i];
+                var url = episode.querySelector("a").getAttribute("href");
+
+                var a = document.createElement("a");
+                a.setAttribute("href", url);
+                a.textContent = halfToFull(episode.querySelector(".widget-toc-episode-titleLabel").textContent);
+                a.addEventListener("click", function(e){
+                    route(url);
+                    e.preventDefault();
+                    e.stopPropagation();
+                });
+
+                var p = document.createElement("p");
+                p.classList.add("indexitem");
+                p.appendChild(a);
+
+                contents.appendChild(p);
+            })();
+        }
+
+        clearPages();
+        paging(contents);
+
+        if(indexPage === "last"){
+            page = outer.childNodes.length - 1;
+        }else if(indexPage){
+            page = Math.max(0, Math.min(outer.childNodes.length - 1, parseInt(indexPage) - 1));
+        }else{
+            page = 0;
+        }
+
+
+        resize();  // caution: do resize after showing
+        update();
+        history.pushState(null, null, "/works/" + workID + "/index/" + (page + 1));
+        closeLoading();
     }
 
     function home(){
@@ -402,9 +415,6 @@ window.addEventListener("load", function() {
 
                 if(episodeID === null && dest === -1){
                     // beginning end of the work
-                }else if(episodeID !== null && dest === -1){
-                    showLoading();
-                    route(`/works/${workID}/index/last`);
                 }else{
                     showLoading();
                     get(`/raw/works/${workID}`, function(responseText){
@@ -419,7 +429,16 @@ window.addEventListener("load", function() {
                             for(var i = 0; i < episodes.length; i++){
                                 var episode = episodes[i];
                                 if(episode.getAttribute("href") === `/works/${workID}/episodes/${episodeID}`){
-                                    if(0 < i && dest === -1){
+                                    if(i === 0 && dest === -1){
+
+                                        // bug workaround in chrome?
+                                        // nested xhr cause 304?
+                                        //setTimeout(function(){
+                                        //    route(`/works/${workID}/index/last`);
+                                        //}, 0);
+                                        renderIndexPage(responseText, `last`);
+
+                                    }else if(0 < i && dest === -1){
                                         route(episodes[i - 1].getAttribute("href") + "/last");
                                     }else if(i < episodes.length - 1 && dest === outer.childNodes.length){
                                         route(episodes[i + 1].getAttribute("href"));
