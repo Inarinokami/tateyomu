@@ -24,6 +24,10 @@ function halfToFull(text){
     })
 }
 
+function pad4(value){
+    var s = "0000" + value.toFixed(0);
+    return s.slice(s.length - 4, s.length);
+}
 
 
 window.addEventListener("load", function() {
@@ -34,6 +38,7 @@ window.addEventListener("load", function() {
         if(cacheTable[url]){
             callback(cacheTable[url]);
         }else{
+            showLoading();
             var xhr = new XMLHttpRequest();
             xhr.onreadystatechange = function() {
                 if (xhr.readyState == 4) { // DONE
@@ -81,13 +86,15 @@ window.addEventListener("load", function() {
         page.appendChild(content);
 
         outer.appendChild(page);
+
+        return page;
     }
 
-    function paging(episodeBody){
+    function paging(episodeBody, offset){
 
         function pushLine(line){
             if(rows <= getLastPage().childNodes.length){
-                appendBlankPage();
+                pageElements.push(appendBlankPage());
             }
             getLastPage().querySelector(".content").appendChild(line);
         }
@@ -104,7 +111,7 @@ window.addEventListener("load", function() {
         }
 
         function getLastPage(){
-            return outer.childNodes[outer.childNodes.length - 1];
+            return pageElements[pageElements.length - 1];
         }
 
         for(var i = 0; i < episodeBody.childNodes.length; i++){
@@ -121,6 +128,8 @@ window.addEventListener("load", function() {
                 }
             }
         }
+
+        var pageElements = [appendBlankPage()];
 
         var contentBounds = getLastPage().querySelector(".content").getBoundingClientRect();
         getLastPage().querySelector(".content").style["width"] = "auto";
@@ -179,7 +188,7 @@ window.addEventListener("load", function() {
                 }
 
                 if(episodeBody.childNodes.length > 0){
-                    appendBlankPage();
+                    pageElements.push(appendBlankPage());
                     getLastPage().querySelector(".content").style["width"] = "auto";
                 }
             }
@@ -191,99 +200,139 @@ window.addEventListener("load", function() {
         }
 
         resize();
+
+        return pageElements;
     }
 
-    function route(contentPath) {
-
-        var matches = /^\/works\/(\d{19})(\/episodes\/(\d{19})(\/(\d{1,4}|last))?)?$/.exec(contentPath);
-
-        if(matches && matches[2]){
-
+    function route(contentPath, callback) {
+        var matches = /^\/works\/(\d{19})(\/episodes\/(\d{19}|index)(\/(\d{1,4}|last))?)?$/.exec(contentPath);
+        if(matches){
             var nextWorkID = matches[1];
-
-            var nextEpisodeID = matches[3];
-            var nextPage = matches[5];
-
-            // episode page //
-
-            if(workID !== nextWorkID || episodeID !== nextEpisodeID){
-                workID = nextWorkID;
-                episodeID = nextEpisodeID;
-                path = `/${workID}/episodes/${episodeID}`;
-
-                get(`/raw/works${path}`, function(responseText){
-
-                    showViewer();
-
-                    var parser = new DOMParser();
-                    var doc = parser.parseFromString(responseText, "text/html");
-                    var episodeBody = doc.querySelector(".widget-episodeBody");
-
-                    var episodeTitleElement = document.createElement("h2");
-                    episodeTitleElement.classList.add("episode-title");
-                    episodeTitleElement.textContent = doc.querySelector(".widget-episodeTitle").textContent;
-                    episodeBody.insertBefore(episodeTitleElement, episodeBody.firstChild);
-
-                    clearPages();
-                    paging(episodeBody);
-
-                    page = nextPage === "last" ?  outer.childNodes.length - 1 : (nextPage && Math.max(0, parseInt(nextPage) - 1)) || 0;
-
-                    resize();
-
-
-                    viewer.style["display"] = "block";
-                    top.style["display"] = "none";
-                    history.pushState(null, null, "/works" + path + "/" + (page + 1));
-                    update();
-
-                    closeLoading();
+            var nextEpisodeID = matches[2] ? matches[3] : "index";
+            var nextPage = (matches[2] && matches[5]) || "1";
+            loadIndexPage(nextWorkID, function(){
+                loadEpisodePages(nextEpisodeID, function(){
+                    workID = nextWorkID;
+                    episodeID = nextEpisodeID;
+                    moveTo(nextPage, function(){
+                        resize();
+                        viewer.style["display"] = "block";
+                        top.style["display"] = "none";
+                        update();
+                        closeLoading();
+                    });
                 });
-            }else{
-                // just move to the page
-                page = nextPage === "last" ?  outer.childNodes.length - 1 : (nextPage && Math.max(0, parseInt(nextPage) - 1)) || 0;
-                update();
-            }
-
-
-
-
-
+            });
         }else{
-            var matches = /^\/works\/(\d{19})(\/index(\/(\d{1,4}|last))?)?$/.exec(contentPath);
-
-            if(matches){
-
-                workID = matches[1];
-                episodeID = null;
-
-                // index
-                get(`/raw/works/${workID}`, function(responseText){
-                    renderIndexPage(responseText, matches[4]);
-                });
-
-            }else{
-                showTopPage();
-            }
+            // invalid url
+            showTopPage();
+            callback();
         }
     }
 
-    function renderIndexPage(responseText, indexPage){
+    function loadWorkData(workID, callback){
+        if(workData === null || workData.id !== workID){
+            get(`/raw/works/${workID}`, function(responseText){
+                var doc = (new DOMParser()).parseFromString(responseText, "text/html");
+                workData = {
+                    id: workID,
+                    title: doc.querySelector("#workTitle").textContent,
+                    author: doc.querySelector("#workAuthor-activityName a").textContent,
+                    genre: doc.querySelector("#workGenre a").textContent,
+                    color: doc.querySelector("#workColor").style["background-color"],
+                    episodes: [{
+                        id: "index",
+                        title: "index",
+                        content: null,
+                        pages: null
+                    }]
+                };
+                var episodes = doc.querySelectorAll(".widget-toc-episode");
+                for(var i = 0; i < episodes.length; i++){
+                    var episode = episodes[i];
+                    var matches = /\/works\/\d{19}\/episodes\/(\d{19})/.exec(episode.querySelector("a").getAttribute("href"));
+                    workData.episodes.push({
+                        id: matches[1],
+                        title: episode.querySelector(".widget-toc-episode-titleLabel").textContent,
+                        content: null,   // null suggests "unloaded",
+                        pages: null
+                    });
+                }
+                callback(workData);
+            });
+        }else{
+            callback(workData);
+        }
+    }
 
+    function loadEpisodePages(episodeID, callback){
+        var episode = workData.episodes.find(function(episode){
+            return episode.id === episodeID;
+        });
+        if( ! episode){
+            throw new Error();
+        }else if(episode.pages){
+            // loaded, ignore
+            callback(episode);
+        }else{
+            get(`/raw/works/${workData.id}/episodes/${episodeID}`, function(responseText){
+                var episodeIndex = workData.episodes.findIndex(function(episode){
+                    return episode.id === episodeID
+                });
+                episode.pages = renderEpisodePages(responseText);
+                episode.pages.forEach(function(page, i){
+                    page.setAttribute("data-episode", episode.id);
+                    page.setAttribute("data-episode-index", episodeIndex);
+                    page.setAttribute("data-episode-page-index", i);
+                    page.querySelector(".header").textContent = `${i + 1}　${episode.title}` ;
+                    page.style["z-index"] = "-" + pad4(workData.episodes.indexOf(episode) + 1) + pad4(i);
+                });
+                callback(episode);
+            });
+        }
+    }
+
+    function renderEpisodePages(responseText){
         showViewer();
-
-        episodeID = null;
 
         var parser = new DOMParser();
         var doc = parser.parseFromString(responseText, "text/html");
-        var episodes = doc.querySelectorAll(".widget-toc-items .widget-toc-episode");
+        var episodeBody = doc.querySelector(".widget-episodeBody");
+
+        var episodeTitleElement = document.createElement("h2");
+        episodeTitleElement.classList.add("episode-title");
+        episodeTitleElement.textContent = doc.querySelector(".widget-episodeTitle").textContent;
+        episodeBody.insertBefore(episodeTitleElement, episodeBody.firstChild);
+
+        var pages = paging(episodeBody, 1);
+
+        return pages;
+    }
+
+    function loadIndexPage(nextWorkID, callback){
+        if(workData === null || workData.id !== nextWorkID){
+            loadWorkData(nextWorkID, function(dat){
+                renderIndexPage(dat);
+                callback();
+            });
+        }else{
+            callback();
+        }
+    }
+
+    function renderIndexPage(workData){
+
+        showViewer();
+
+        outer.innerHTML = "";
+        episodeID = null;
 
         var h1 = document.createElement("h1");
-        h1.textContent = doc.querySelector("#workTitle a").textContent;
+        h1.textContent = workData.title;
 
         var author = document.createElement("p");
         author.classList.add("author");
-        author.textContent = doc.querySelector("#workAuthor-activityName a").textContent;
+        author.textContent = workData.author;
 
         var h2 = document.createElement("h2");
         h2.textContent = "目次";
@@ -294,14 +343,14 @@ window.addEventListener("load", function() {
         contents.appendChild(h2);
 
 
-        for(var i = 0; i < episodes.length; i++){
+        for(var i = 1; i < workData.episodes.length; i++){
             (function(){
-                var episode = episodes[i];
-                var url = episode.querySelector("a").getAttribute("href");
+                var episode = workData.episodes[i];
+                var url = `/works/${workData.id}/episodes/${episode.id}`;
 
                 var a = document.createElement("a");
                 a.setAttribute("href", url);
-                a.textContent = halfToFull(episode.querySelector(".widget-toc-episode-titleLabel").textContent);
+                a.textContent = halfToFull(episode.title);
                 a.addEventListener("click", function(e){
                     route(url);
                     e.preventDefault();
@@ -316,22 +365,15 @@ window.addEventListener("load", function() {
             })();
         }
 
-        clearPages();
-        paging(contents);
-
-        if(indexPage === "last"){
-            page = outer.childNodes.length - 1;
-        }else if(indexPage){
-            page = Math.max(0, Math.min(outer.childNodes.length - 1, parseInt(indexPage) - 1));
-        }else{
-            page = 0;
-        }
+        workData.episodes[0].pages = paging(contents, 0);
+        workData.episodes[0].pages.forEach(function(page, i){
+            page.setAttribute("data-episode", "index");
+            page.setAttribute("data-episode-index", "0");
+            page.setAttribute("data-episode-page-index", i);
+            page.style["z-index"] = "-0000" + pad4(i);
+        });
 
 
-        resize();  // caution: do resize after showing
-        update();
-        history.pushState(null, null, "/works/" + workID + "/index/" + (page + 1));
-        closeLoading();
     }
 
     function home(){
@@ -349,15 +391,49 @@ window.addEventListener("load", function() {
 
         var pageBoudns = outer.getBoundingClientRect();
 
+        var currentEpisodeIndex = workData.episodes.findIndex(function(episode){
+            return episode.id === episodeID;
+        });
+
+        var currentEpisode = workData.episodes[currentEpisodeIndex];
+
         var inners = outer.querySelectorAll("div#outer > div");
+
+        var cp = outer.querySelector(`[data-episode-index="${currentEpisodeIndex}"][data-episode-page-index="${page}"]`);
+        var z = parseInt(cp.style["z-index"]);
+        var left = false;
         for(var i = 0; i < inners.length; i++){
             var inner = inners[i];
-            inner.style["display"] = page - 2 <= i && i <= page + 2 ? "block" : "none";
-            inner.style["z-index"] = -i;
-            /*inner.style["position"] = page === i ? "relative" : "absolute";*/
-            inner.style["left"] = i >= page ? "0px" : (pageBoudns.right + 200 + "px");
-            inner.style["top"] = "0px"
+            var pageEpisode = inner.getAttribute("data-episode");
+            var episodeIndex = inner.getAttribute("data-episode-index");
+            var pi = parseInt(inner.getAttribute("data-episode-page-index"));
+            inner.style["display"] = "none";
+            inner.style["left"] = parseInt(inner.style["z-index"]) <= z ? "0px" : (pageBoudns.right + 200 + "px");
         }
+
+        for(var i = -1; i <= 1; i++){
+            var p = outer.querySelector(`[data-episode-index="${currentEpisodeIndex}"][data-episode-page-index="${page + i}"]`);
+            if(p){
+                p.style["display"] = "";
+            }
+        }
+
+
+
+        if(page === 0 && 0 < currentEpisodeIndex){
+            var previous = workData.episodes[currentEpisodeIndex - 1];
+            if(previous.pages){
+                previous.pages[previous.pages.length - 1].style.display = "";
+            }
+        }
+        if(page === currentEpisode.pages.length - 1 && currentEpisodeIndex < workData.episodes.length - 1){
+            var next = workData.episodes[currentEpisodeIndex + 1];
+            if(next.pages){
+                next.pages[0].style.display = "";
+            }
+        }
+
+
     }
 
 
@@ -368,6 +444,10 @@ window.addEventListener("load", function() {
     var path = "";
     var workID = "";
     var episodeID = "";
+
+    var workData = null;
+    var episodeDataTable = {};
+    var preload = true;
 
     var outer = document.querySelector("div#outer");
     var next = document.querySelector("div#next");
@@ -380,7 +460,6 @@ window.addEventListener("load", function() {
     var read = document.querySelector("#read");
 
     read.addEventListener("click", function() {
-        showLoading();
         route(urlInput.value.slice("https://kakuyomu.jp".length));
     });
 
@@ -401,69 +480,68 @@ window.addEventListener("load", function() {
         if(e.clientY < bounds.height * 0.3){
             document.querySelector(".topmenu").style["left"] = "0px";
         }else if(bounds.width * 0.75 < e.clientX - bounds.left){
-            goto(page - 1);
+            goto(page + 1 - 1, function(){
+                closeLoading();
+            });
         }else{
-            goto(page + 1);
+            goto(page + 1 + 1, function(){
+                closeLoading();
+            });
         }
     });
 
-    function goto(dest) {
+    // dest: "last" or grater than zero
+    function moveTo(destStr, callback){
+        var currentEpisode = workData.episodes.find(function(episode){
+            return episode.id === episodeID;
+        });
+        var currentEpisodeIndex = workData.episodes.findIndex(function(episode){
+            return episode.id === episodeID;
+        });
+        var dest = destStr === null ? 0 :
+                   destStr === "last" ? currentEpisode.pages.length - 1 :
+                   parseInt(destStr) - 1;
 
-        if(viewer.style["display"] === "block" && ! isLoading()){
-
-            if(dest === -1 || dest === outer.childNodes.length){
-
-                if(episodeID === null && dest === -1){
-                    // beginning end of the work
-                }else{
-                    showLoading();
-                    get(`/raw/works/${workID}`, function(responseText){
-                        var parser = new DOMParser();
-                        var doc = parser.parseFromString(responseText, "text/html");
-                        var episodes = doc.querySelectorAll(".widget-toc-items .widget-toc-episode a");
-
-                        if(episodeID === null && dest === outer.childNodes.length){
-                            // beginning of the main texts
-                            route(episodes[0].getAttribute("href"));
-                        }else {
-                            for(var i = 0; i < episodes.length; i++){
-                                var episode = episodes[i];
-                                if(episode.getAttribute("href") === `/works/${workID}/episodes/${episodeID}`){
-                                    if(i === 0 && dest === -1){
-
-                                        // bug workaround in chrome?
-                                        // nested xhr cause 304?
-                                        //setTimeout(function(){
-                                        //    route(`/works/${workID}/index/last`);
-                                        //}, 0);
-                                        renderIndexPage(responseText, `last`);
-
-                                    }else if(0 < i && dest === -1){
-                                        route(episodes[i - 1].getAttribute("href") + "/last");
-                                    }else if(i < episodes.length - 1 && dest === outer.childNodes.length){
-                                        route(episodes[i + 1].getAttribute("href"));
-                                    }else{
-                                        // terminative end of the work
-                                        closeLoading();
-                                    }
-                                    break;
-                                }
-                            }
-                        }
-                    });
-                }
-            }else{
-                var nextPage = Math.max(0, Math.min(outer.childNodes.length - 1, dest === "last" ? outer.childNodes.length - 1 : dest));
-                if(nextPage != page){
-                    page = nextPage;
-                    if(episodeID === null){
-                        history.pushState(null, null, `/works/${workID}/index/${page + 1}`);
-                    }else{
-                        history.pushState(null, null, `/works${path}/${page + 1}`);
-                    }
-                    update();
-                }
+        if(currentEpisodeIndex === 0 && dest === -1){
+            // begging og the work, ignore
+            closeLoading();
+        }else if(currentEpisodeIndex === workData.episodes.length - 1 && dest === currentEpisode.pages.length){
+            // end of the work, ignore
+            closeLoading();
+        }else if(dest === -1){
+            loadEpisodePages(workData.episodes[currentEpisodeIndex - 1].id, function(){
+                episodeID = workData.episodes[currentEpisodeIndex - 1].id;
+                page = workData.episodes[currentEpisodeIndex - 1].pages.length - 1;
+                history.pushState(null, null, `/works/${workData.id}/episodes/${episodeID}/${page + 1}`);
+                update();
+                callback();
+            });
+        }else if(dest === currentEpisode.pages.length){
+            loadEpisodePages(workData.episodes[currentEpisodeIndex + 1].id, function(){
+                episodeID = workData.episodes[currentEpisodeIndex + 1].id;
+                page = 0;
+                history.pushState(null, null, `/works/${workData.id}/episodes/${episodeID}/${page + 1}`);
+                update();
+                callback();
+            });
+        }else{
+            if(preload && dest === currentEpisode.pages.length - 1 && currentEpisodeIndex < workData.episodes.length - 1){
+                loadEpisodePages(workData.episodes[currentEpisodeIndex + 1].id, function(){
+                });
             }
+
+            page = dest;
+            history.pushState(null, null, `/works/${workData.id}/episodes/${episodeID}/${page + 1}`);
+            update();
+            callback();
+        }
+    }
+
+    function goto(dest, callback) {
+        if(viewer.style["display"] === "block" && ! isLoading()){
+            moveTo(dest, callback);
+        }else{
+            callback();
         }
     }
 
@@ -473,16 +551,19 @@ window.addEventListener("load", function() {
     });
 
     document.querySelector("#go-to-index").addEventListener("click", function() {
-        showLoading();
         route(`/works/${workID}`);
     });
 
     document.querySelector("#go-next").addEventListener("click", function() {
-        goto(page + 1);
+        goto(page + 1 + 1, function(){
+            closeLoading();
+        });
     });
 
     document.querySelector("#go-back").addEventListener("click", function() {
-        goto(page - 1);
+        goto(page + 1 - 1, function(){
+            closeLoading();
+        });
     });
 
     document.querySelector("#fullscreen").addEventListener("click", function() {
@@ -522,7 +603,9 @@ window.addEventListener("load", function() {
 
     window.addEventListener("keydown", function(e) {
         if(page !== "last" && document.querySelector("img.loading").style["display"] !== "block"){
-            goto(page + (e.keyCode === 37 ? 1 : 0) - (e.keyCode === 39 ? 1 : 0));
+            goto(page + 1 + (e.keyCode === 37 ? 1 : 0) - (e.keyCode === 39 ? 1 : 0), function(){
+                closeLoading();
+            });
         }
     });
 
@@ -536,10 +619,6 @@ window.addEventListener("load", function() {
     function showTopPage(){
         top.style["display"] = "block";
         viewer.style["display"] = "none";
-        //if(window.location.pathname !== "/"){
-        //    history.pushState(null, null, "/");
-        //}
-        closeLoading();
     }
 
     function showViewer(){
@@ -569,7 +648,7 @@ window.addEventListener("load", function() {
         document.querySelector(".error").style["display"] = "block";
     }
 
-
-
-    route(window.location.pathname);
+    route(window.location.pathname, function(){
+        closeLoading();
+    });
 });
