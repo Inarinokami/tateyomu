@@ -21,7 +21,7 @@ function halfToFull(text){
             b)
     }).replace(/[a-zA-Z0-9]/g, function(d){
         return String.fromCharCode(0xFEE0 + d.charCodeAt(0));
-    })
+    }).replace(/―/g, "—").replace(/\(/g, "（").replace(/\)/g, "）")
 }
 
 function pad4(value){
@@ -411,10 +411,10 @@ window.addEventListener("load", function() {
             var pageEpisode = inner.getAttribute("data-episode");
             var episodeIndex = inner.getAttribute("data-episode-index");
             var pi = parseInt(inner.getAttribute("data-episode-page-index"));
-            inner.style["display"] = "none";
+            //inner.style["display"] = "none";
             inner.style["left"] = parseInt(inner.style["z-index"]) <= z ? "0px" : (pageBoudns.right + 200 + "px");
         }
-
+/*
         for(var i = -1; i <= 1; i++){
             var p = outer.querySelector(`[data-episode-index="${currentEpisodeIndex}"][data-episode-page-index="${page + i}"]`);
             if(p){
@@ -436,7 +436,7 @@ window.addEventListener("load", function() {
                 next.pages[0].style.display = "";
             }
         }
-
+*/
 
     }
 
@@ -533,6 +533,10 @@ window.addEventListener("load", function() {
                 loadEpisodePages(workData.episodes[currentEpisodeIndex + 1].id, function(){
                 });
             }
+            //if(preload && dest === 0 && 2 < currentEpisodeIndex){
+            //    loadEpisodePages(workData.episodes[currentEpisodeIndex - 1].id, function(){
+            //    });
+            //}
 
             page = dest;
             history.pushState(null, null, `/works/${workData.id}/episodes/${episodeID}/${page + 1}`);
