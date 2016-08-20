@@ -57,7 +57,7 @@ body {
 #top .usage {
     writing-mode: vertical-rl;
     height: 12em;
-    margin: 2em;
+    margin: 1em;
     margin-left: auto;
     width: 100%;
 }
@@ -127,6 +127,21 @@ body {
     margin-right: auto;
     font-size: 12px;
     width: 300px;
+}
+
+#top a.tweet {
+    color: white;
+    text-shadow: none;
+    background-color: rgba(0, 0, 0, 0.4);
+    border: solid 1px white;
+    border-radius: 8px;
+    text-decoration: none;
+    display: inline-block;
+    padding: 0.2em;
+}
+
+#top a.tweet:before {
+    content: url("/twitter.png");
 }
 
 
