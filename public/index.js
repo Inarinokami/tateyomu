@@ -8,6 +8,9 @@ const fontSize = 20; // px
 const rubySize = 10; // px
 
 const pageAspectRatio = 1.5;
+const timespan = 1.0;
+
+const pathPattern = /^\/works\/(\d{19})(\/episodes\/(\d{19}|index)(\/(\d{1,4}|last))?)?$/;
 
 function halfToFull(text){
     return text.replace(/([^!?！？])([!?！？]{2})(?![!?！？])/g, function(_, a, b){
@@ -29,33 +32,40 @@ function pad4(value){
     return s.slice(s.length - 4, s.length);
 }
 
+function showLoading(){
+    document.querySelector("#top").style["-webkit-filter"] = "blur(5px)";
+    document.querySelector("#viewer").style["-webkit-filter"] = "blur(5px)";
+    document.querySelector("img.loading").style["display"] = "block";
+}
+
+const cacheTable = {};
+
+function get(url, callback){
+    if(cacheTable[url]){
+        callback(cacheTable[url]);
+    }else{
+        showLoading();
+        var xhr = new XMLHttpRequest();
+        xhr.onreadystatechange = function() {
+            if (xhr.readyState == 4) { // DONE
+                if (xhr.status == 200 || xhr.status == 304) { // OK
+                    cacheTable[url] = xhr.responseText;
+                    callback(xhr.responseText);
+                }else{
+                    console.log("Error: " + xhr.status);
+                    closeLoading();
+                    document.querySelector(".error").style["visibility"] = "visible";
+                }
+            }
+        };
+        xhr.open("GET", url);
+        xhr.send();
+    }
+}
 
 window.addEventListener("load", function() {
 
-    var cacheTable = {};
 
-    function get(url, callback){
-        if(cacheTable[url]){
-            callback(cacheTable[url]);
-        }else{
-            showLoading();
-            var xhr = new XMLHttpRequest();
-            xhr.onreadystatechange = function() {
-                if (xhr.readyState == 4) { // DONE
-                    if (xhr.status == 200 || xhr.status == 304) { // OK
-                        cacheTable[url] = xhr.responseText;
-                        callback(xhr.responseText);
-                    }else{
-                        console.log("Error: " + xhr.status);
-                        closeLoading();
-                        document.querySelector(".error").style["visibility"] = "visible";
-                    }
-                }
-            };
-            xhr.open("GET", url);
-            xhr.send();
-        }
-    }
 
     function resize(){
         outer.style["transform"] = `scale(1.0)`;
@@ -65,11 +75,6 @@ window.addEventListener("load", function() {
         var scale = Math.min(scaleX, scaleY);
         outer.style["transform"] = `scale(${scale})`;
         outer.style["transform-origin"] = scaleX > scaleY ? "50% 0%" : "0% 50%";
-    }
-
-    function clearPages(){
-        outer.innerHTML = "";
-        appendBlankPage();
     }
 
     function appendBlankPage(){
@@ -380,9 +385,12 @@ window.addEventListener("load", function() {
         document.querySelector("#url").value = "https://kakuyomu.jp" + window.location.pathname;
         showTopPage();
         history.pushState(null, null, "/");
+        update();
     }
 
     function update() {
+
+        // top
         if (urlInput.value.match(/^https:\/\/kakuyomu\.jp\/works\/\d{19}(\/episodes\/\d{19}(\/\d{1,4})?)?$/)) {
             read.removeAttribute("disabled");
             document.querySelector(".epub").removeAttribute("disabled");
@@ -393,50 +401,49 @@ window.addEventListener("load", function() {
             document.querySelector(".plaintext").setAttribute("disabled", "");
         }
 
-        var pageBoudns = outer.getBoundingClientRect();
-
-        var currentEpisodeIndex = workData.episodes.findIndex(function(episode){
-            return episode.id === episodeID;
-        });
-
-        var currentEpisode = workData.episodes[currentEpisodeIndex];
-
-        var inners = outer.querySelectorAll("div#outer > div");
-
-        var cp = outer.querySelector(`[data-episode-index="${currentEpisodeIndex}"][data-episode-page-index="${page}"]`);
-        var z = parseInt(cp.style["z-index"]);
-        var left = false;
-        for(var i = 0; i < inners.length; i++){
-            var inner = inners[i];
-            var pageEpisode = inner.getAttribute("data-episode");
-            var episodeIndex = inner.getAttribute("data-episode-index");
-            var pi = parseInt(inner.getAttribute("data-episode-page-index"));
-            //inner.style["display"] = "none";
-            inner.style["left"] = parseInt(inner.style["z-index"]) <= z ? "0px" : (pageBoudns.right + 200 + "px");
-        }
-/*
-        for(var i = -1; i <= 1; i++){
-            var p = outer.querySelector(`[data-episode-index="${currentEpisodeIndex}"][data-episode-page-index="${page + i}"]`);
-            if(p){
-                p.style["display"] = "";
+        // viewer
+        if(workData){
+            var pageBoudns = outer.getBoundingClientRect();
+            var currentEpisodeIndex = workData.episodes.findIndex(function(episode){
+                return episode.id === episodeID;
+            });
+            var currentEpisode = workData.episodes[currentEpisodeIndex];
+            var inners = outer.querySelectorAll("div#outer > div");
+            var cp = outer.querySelector(`[data-episode-index="${currentEpisodeIndex}"][data-episode-page-index="${page}"]`);
+            var z = parseInt(cp.style["z-index"]);
+            var left = false;
+            for(var i = 0; i < inners.length; i++){
+                var inner = inners[i];
+                var pageEpisode = inner.getAttribute("data-episode");
+                var episodeIndex = inner.getAttribute("data-episode-index");
+                var pi = parseInt(inner.getAttribute("data-episode-page-index"));
+                //inner.style["display"] = "none";
+                inner.style["left"] = parseInt(inner.style["z-index"]) <= z ? "0px" : (pageBoudns.right + 200 + "px");
             }
-        }
-
-
-
-        if(page === 0 && 0 < currentEpisodeIndex){
-            var previous = workData.episodes[currentEpisodeIndex - 1];
-            if(previous.pages){
-                previous.pages[previous.pages.length - 1].style.display = "";
+    /*
+            for(var i = -1; i <= 1; i++){
+                var p = outer.querySelector(`[data-episode-index="${currentEpisodeIndex}"][data-episode-page-index="${page + i}"]`);
+                if(p){
+                    p.style["display"] = "";
+                }
             }
-        }
-        if(page === currentEpisode.pages.length - 1 && currentEpisodeIndex < workData.episodes.length - 1){
-            var next = workData.episodes[currentEpisodeIndex + 1];
-            if(next.pages){
-                next.pages[0].style.display = "";
+
+
+
+            if(page === 0 && 0 < currentEpisodeIndex){
+                var previous = workData.episodes[currentEpisodeIndex - 1];
+                if(previous.pages){
+                    previous.pages[previous.pages.length - 1].style.display = "";
+                }
             }
+            if(page === currentEpisode.pages.length - 1 && currentEpisodeIndex < workData.episodes.length - 1){
+                var next = workData.episodes[currentEpisodeIndex + 1];
+                if(next.pages){
+                    next.pages[0].style.display = "";
+                }
+            }
+    */
         }
-*/
 
     }
 
@@ -463,9 +470,82 @@ window.addEventListener("load", function() {
     var top = document.querySelector("#top");
     var read = document.querySelector("#read");
 
+    // top menu buttons ///////////////
+
     read.addEventListener("click", function() {
         route(urlInput.value.slice("https://kakuyomu.jp".length));
     });
+
+    function parseKakuyomuURL(url){
+        var matches = /^https:\/\/kakuyomu\.jp\/works\/(\d{19})(\/episodes\/(\d{19}|index))?$/.exec(url);
+        if(matches){
+            return {
+                workID: matches[1],
+                episodeID: matches[3]
+            }
+        }else{
+            return null;
+        }
+    }
+
+    document.querySelector("button.epub").addEventListener("click", function() {
+        var path = parseKakuyomuURL(urlInput.value);
+        if(path){
+            loadWorkData(path.workID, function(workData){
+                createEpub(workData, function(epubBlob){
+                    download(`${workData.author}『${workData.title}』.epub`, epubBlob);
+                    closeLoading();
+                });
+            });
+        }
+    });
+
+
+    document.querySelector("button.plaintext").addEventListener("click", function() {
+        var path = parseKakuyomuURL(urlInput.value);
+        if(path){
+            loadWorkData(path.workID, function(work){
+                var i = 0;
+                var episodes = work.episodes.slice(1);
+                var title = work.title;
+                var author = work.author;
+                var zip = new JSZip();
+                var uuid = generateUUID();
+
+                zip.file("description.txt",
+        `【作品名】${work.title}
+        【作者】${work.author}
+        【イメージカラー】${work.color}
+        【ジャンル】${work.genre}
+        【キャッチフレーズ】${work.catchphrase}
+        【あらすじ】
+        ${work.introduction}`);
+
+                function next() {
+                    if (i < episodes.length) {
+                        var episode = episodes[i];
+                        var episodeName = escapeTagChars(episode.title);
+                        get(`/raw/works/${work.id}/episodes/${episode.id}`, function(source) {
+                            console.log("Downloading \"" + episodeName + "\"...");
+                            zip.file("episode_" + padzero(i) + ".txt", "# " + episodeName + "\n\n" + htmlToSource(source));
+                            i += 1;
+                            setTimeout(next, timespan * 1000);
+                        });
+                    } else {
+                        zip.generateAsync({
+                            type: "blob"
+                        }).then(function(content) {
+                            download(`${work.author}『${work.title}』.zip`, content);
+                            closeLoading();
+                        });
+                    }
+                }
+
+                next();
+            });
+        }
+    });
+
 
     document.addEventListener("cut",  function(e){
         setTimeout(function(){
@@ -634,11 +714,7 @@ window.addEventListener("load", function() {
         top.style["display"] = "none";
     }
 
-    function showLoading(){
-        top.style["-webkit-filter"] = "blur(5px)";
-        viewer.style["-webkit-filter"] = "blur(5px)";
-        document.querySelector("img.loading").style["display"] = "block";
-    }
+
 
     function closeLoading(){
         top.style["-webkit-filter"] = "none";

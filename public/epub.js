@@ -1,0 +1,192 @@
+"use strict";
+
+function escapeTitle(title){
+    return title.replace(/([^0-9])([0-9]{1,2})(?![0-9])/g, function(_, a, b){
+        var table = {
+            "0": "０",
+            "1": "１",
+            "2": "２",
+            "3": "３",
+            "4": "４",
+            "5": "５",
+            "6": "６",
+            "7": "７",
+            "8": "８",
+            "9": "９"
+        };
+        return a + table[b[0]] + (b[1] ? table[b[1]] : "");
+    });
+}
+
+function createEpub(work, callback){
+
+    var coverTable = {
+        "ファンタジー": "fantasy.jpg",
+        "SF": "sf.jpg",
+        "恋愛・ラブコメ": "love.jpg",
+        "現代アクション": "action.jpg",
+        "現代ドラマ": "drama.jpg",
+        "ホラー": "horror.jpg",
+        "ミステリー": "mystery.jpg",
+        "歴史・時代": "history.jpg",
+        "エッセイ・ノンフィクション": 'cover.jpg',
+        "創作論・評論": 'cover.jpg',
+        "その他": 'cover.jpg'
+    };
+
+    get("template/style.css", function(style) {
+        getImage("cover/" + coverTable[work.genre], function(image) {
+            get("template/container.xml", function(container) {
+                get("template/bodymatter.xhtml", function(bodymatterSource) {
+                    get("template/nav.xhtml", function(navSource) {
+                        get("template/toc.xhtml", function(tocSource) {
+                            get("template/content.xml", function(contentSource) {
+
+                                var episodes = work.episodes.slice(1);
+                                var title = work.title;
+                                var author = work.author;
+                                var color = work.color;
+                                var genres = work.genre;
+                                var catchphrase = work.catchphrase;
+
+                                var bodymatters = [];
+
+                                var zip = new JSZip();
+                                zip.file("mimetype", "application/epub+zip");
+
+                                var metainf = zip.folder("META-INF");
+                                metainf.file("container.xml", container);
+
+                                var oebps = zip.folder("OEBPS");
+
+                                var navDom = (new window.DOMParser()).parseFromString(navSource, "text/xml");
+                                navDom.querySelector("title").textContent = work.title;
+                                episodes.map(function(episode, index) {
+                                    var span = document.createElement("span");
+                                    span.textContent = escapeTitle(episode.title);
+
+                                    var a = document.createElement("a");
+                                    a.setAttribute("href", `bodymatter_${padzero(index)}.xhtml`);
+                                    a.appendChild(span);
+                                    var li = document.createElement("li");
+                                    li.appendChild(a);
+                                    navDom.querySelector("#toc ol").appendChild(li);
+
+                                    var span = document.createElement("span");
+                                    span.textContent = escapeTitle(episode.title);
+                                    var a = document.createElement("a");
+                                    a.setAttribute("epub:type", "bodymatter");
+                                    a.setAttribute("href", `bodymatter_${padzero(index)}.xhtml`);
+                                    a.appendChild(span);
+                                    var li = document.createElement("li");
+                                    li.appendChild(a);
+
+                                    navDom.querySelector("#landmarks ol").appendChild(li);
+                                });
+                                oebps.file(`nav.xhtml`, (new XMLSerializer()).serializeToString(navDom));
+
+                                var contentDom = (new window.DOMParser()).parseFromString(contentSource, "text/xml");
+                                contentDom.querySelector('#identifier0').textContent = `urn:uuid:${work.uuid}`;
+                                contentDom.querySelector("#title0").textContent = work.title;
+                                contentDom.querySelector("#creator0").textContent = work.author;
+                                contentDom.querySelector('metadata meta[property="dcterms:modified"]').textContent = toISOString(new Date());
+                                episodes.map(function(episode, index) {
+                                    var item = contentDom.createElement("item");
+                                    item.setAttribute("media-type", "application/xhtml+xml");
+                                    item.setAttribute("href", `bodymatter_${padzero(index)}.xhtml`);
+                                    item.setAttribute("id", `_bodymatter_${padzero(index)}.xhtml`);
+                                    contentDom.querySelector("manifest").insertBefore(item, contentDom.querySelector("#_toc.ncx"));
+
+                                    var itemref = contentDom.createElement("itemref");
+                                    itemref.setAttribute("idref", `_bodymatter_${padzero(index)}.xhtml`);
+                                    contentDom.querySelector("spine").appendChild(itemref);
+
+                                    var e = contentDom.createElement("reference");
+                                    e.setAttribute("type", "text");
+                                    e.setAttribute("title", escapeTitle(episode.title));
+                                    e.setAttribute("href", `bodymatter_${padzero(index)}.xhtml`);
+                                    contentDom.querySelector("guide").appendChild(e);
+                                });
+                                oebps.file("content.opf", (new XMLSerializer()).serializeToString(contentDom));
+
+                                // render colver image
+                                var canvas = document.createElement("canvas");
+                                canvas.width = image.width;
+                                canvas.height = image.height;
+                                var g = canvas.getContext("2d");
+                                g.drawImage(image, 0, 0);
+                                g.textBaseline = "top";
+                                g.fillStyle = "black";
+                                g.font = "90px serif";
+                                g.fillText(title.slice(0, 9), 200, 400);
+                                g.fillText(title.slice(9, 18), 200, 500);
+                                g.fillText(title.slice(18, 27), 200, 600);
+                                g.fillText(title.slice(27, 36), 200, 700);
+                                g.font = "70px serif";
+                                g.fillText(author, 200, 950);
+
+                                var s = 20;
+                                g.fillStyle = color;
+                                g.fillRect(0, 0, canvas.width, s);
+                                g.fillRect(0, canvas.height - 400, canvas.width, 400);
+                                g.fillRect(0, 0, s, canvas.height);
+                                g.fillRect(canvas.width - s, 0, s, canvas.height);
+
+                                if (work.catchphrase) {
+                                    g.fillStyle = "white";
+                                    //g.font = ((image.width - 40) / work.catchphrase.length * 2).toFixed() + "px serif";
+                                    //g.fillText(work.catchphrase, 20, 1400);
+                                    var fontSize = 80;
+                                    g.font = `${fontSize}px serif`;
+                                    g.save();
+                                    if(work.catchphrase.length < 13){
+                                        g.translate(80, 1370);
+                                        g.fillText(work.catchphrase, 0, 0);
+                                    }else if(work.catchphrase.length < 25){
+                                        g.translate(80, 1300);
+                                        g.fillText(work.catchphrase.slice(0, 13), 0, 0);
+                                        g.fillText(work.catchphrase.slice(13, 25), 0, fontSize + 20);
+                                    }else{
+                                        g.translate(80, 1250);
+                                        g.fillText(work.catchphrase.slice(0, 13), 0, 0);
+                                        g.fillText(work.catchphrase.slice(13, 25), 0, fontSize + 20);
+                                        g.fillText(work.catchphrase.slice(25, 36), 0, fontSize * 2 + 40);
+                                    }
+                                    g.restore();
+                                }
+
+                                var tocDom = (new window.DOMParser()).parseFromString(tocSource, "text/xml");
+                                tocDom.querySelector('head meta[name="dtb:uid"]').setAttribute("content", `urn:uuid:${work.uuid}`);
+                                tocDom.querySelector("docTitle text").textContent = work.title;
+                                tocDom.querySelector("navPoint content").setAttribute("src", `bodymatter_${padzero(0)}.xhtml`);
+                                oebps.file("toc.ncx", (new XMLSerializer()).serializeToString(tocDom));
+
+                                oebps.file("style.css", style);
+                                var imageDataURL = canvas.toDataURL();
+                                oebps.file("cover.png", imageDataURL.substr(imageDataURL.indexOf(',') + 1), {
+                                    base64: true
+                                });
+
+                                episodes.forEach(function(episode, i){
+                                    get(`/raw/works/${work.id}/episodes/${episode.id}`, function(rawEpisodeSource){
+                                        var dom = (new window.DOMParser()).parseFromString(bodymatterSource, "text/xml");
+                                        dom.querySelector("title").textContent = title;
+                                        dom.querySelector("#episodeName").textContent = escapeTagChars(escapeTitle(episode.title));
+                                        dom.querySelector("#episodeBody").innerHTML = sourceToHTML(htmlToSource(rawEpisodeSource));
+                                        oebps.file(`bodymatter_${padzero(i)}.xhtml`, (new XMLSerializer()).serializeToString(dom));
+
+                                        if(i === episodes.length - 1){
+                                            zip.generateAsync({
+                                                type: "blob"
+                                            }).then(callback);
+                                        }
+                                    });
+                                });
+                            });
+                        });
+                    });
+                });
+            });
+        });
+    });
+}
