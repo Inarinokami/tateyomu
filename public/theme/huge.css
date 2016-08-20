@@ -1,0 +1,10 @@
+
+#viewer #outer {
+    width: calc(40px + 18em + 40px);
+    height: calc(40px + 50px + 28em + 40px);
+}
+
+#viewer .page .content {
+    width: 18em;
+    height: 28em;
+}

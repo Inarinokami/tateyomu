@@ -1,15 +1,6 @@
 "use strict";
 
-const columns = 42;
-const rows = 18;
-const lineHeight = 1.0;
-
-const fontSize = 20; // px
-const rubySize = 10; // px
-
-const pageAspectRatio = 1.5;
 const timespan = 1.0;
-
 const pathPattern = /^\/works\/(\d{19})(\/episodes\/(\d{19}|index)(\/(\d{1,4}|last))?)?$/;
 
 function halfToFull(text){
@@ -95,24 +86,6 @@ window.addEventListener("load", function() {
     }
 
     function paging(episodeBody, offset){
-
-        function pushLine(line){
-            if(rows <= getLastPage().childNodes.length){
-                pageElements.push(appendBlankPage());
-            }
-            getLastPage().querySelector(".content").appendChild(line);
-        }
-
-        function addBlankLine(){
-            var rt = document.createElement("rt");
-            rt.textContent = "　";
-            var ruby = document.createElement("ruby");
-            ruby.textContent = "　";
-            ruby.appendChild(rt);
-            var pe = document.createElement("p");
-            pe.appendChild(ruby);
-            pushLine(pe);
-        }
 
         function getLastPage(){
             return pageElements[pageElements.length - 1];
@@ -404,6 +377,14 @@ window.addEventListener("load", function() {
         showTopPage();
         history.pushState(null, null, "/");
         update();
+
+        if(document.webkitFullscreenEnabled){
+            document.webkitExitFullscreen();
+        }else if(document.mozFullScreenEnabled){
+            document.mozExitFullscreen();
+        }else if(document.fullScreenEnabled){
+            document.exitFullscreen();
+        }
     }
 
     function update() {
@@ -722,6 +703,49 @@ window.addEventListener("load", function() {
             document.querySelector(".error").style["visibility"] = "hidden";
         }, 0)
     });
+
+
+    document.querySelector("#theme-siro").addEventListener("click", function(e){
+        document.querySelector("#theme").setAttribute("href", "");
+    });
+
+    document.querySelector("#theme-kinari").addEventListener("click", function(e){
+        document.querySelector("#theme").setAttribute("href", "/theme/kinari.css");
+    });
+    document.querySelector("#theme-yoru").addEventListener("click", function(e){
+        document.querySelector("#theme").setAttribute("href", "/theme/yoru.css");
+    });
+
+    document.querySelector("#font-size-huge").addEventListener("click", function(e){
+        get("/theme/huge.css", function(css){
+            document.querySelector("#font-size").textContent = css;
+            outer.innerHTML = "";
+            outer.style["transform"] = `scale(1.0)`;
+            renderIndexPage(workData);
+            episodeID = "index";
+            page = 0;
+            resize();
+            update();
+            closeLoading();
+        });
+    });
+    document.querySelector("#font-size-large").addEventListener("click", function(e){
+        document.querySelector("#font-size").setAttribute("href", "/theme/large.css");
+        resize();
+        update();
+    });
+    document.querySelector("#font-size-normal").addEventListener("click", function(e){
+        document.querySelector("#font-size").textContent = "";
+        outer.innerHTML = "";
+        outer.style["transform"] = `scale(1.0)`;
+        renderIndexPage(workData);
+        episodeID = "index";
+        page = 0;
+        resize();
+        update();
+        closeLoading();
+    });
+
 
     function showTopPage(){
         top.style["display"] = "block";

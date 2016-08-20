@@ -180,8 +180,7 @@ body {
 
     font-size: 20px;
 
-    /* border: solid 1px #ddd; */
-    box-shadow: 0px 0px 50px 0px rgba(0, 0, 0, 0.5);
+    border: solid 1px #ddd;
 }
 
 #viewer #outer p {
@@ -207,6 +206,7 @@ body {
     margin: 20px;
     padding: 8px;
 
+    color: black;
     background-color: white;
     border: solid 1px grey;
 
@@ -228,7 +228,6 @@ body {
 
 #viewer .topmenu .menu-item {
     text-decoration: none;
-    color: black;
     font-size: x-large;
     white-space: nowrap;
 }
@@ -278,16 +277,10 @@ body {
     align-items: stretch;
 
     overflow: hidden;
-    font-size: 20px;
     line-height: 1.6em;
     position: absolute;
 
-    color: rgba(33, 26, 24, 1);
-
-    box-shadow: 0px 0px 30px 30px rgba(0, 0, 0, 0.3);
     background-color: white;
-    background-image: url("/011-subtle-light-patterns.jpg");
-    background-repeat: repeat;
 
     box-sizing: border-box;
     padding: 40px;
@@ -296,14 +289,7 @@ body {
     transition-duration: 0.8s;
 }
 
-#viewer ::-moz-selection {
-    color: white;
-    background: black;
-}
-#viewer ::selection {
-    color: white;
-    background: black;
-}
+
 
 #viewer .page .header {
     height: 30px;
@@ -350,4 +336,10 @@ div.error {
     color: red;
     text-shadow: 0 0 4px rgba(0, 0, 0, 1), 0 0 4px rgba(0, 0, 0, 1);
     text-align: center;
+}
+
+
+.btn {
+    font-size: x-large;
+    border: solid 1px black;
 }

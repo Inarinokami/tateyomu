@@ -3,8 +3,11 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width">
-        <link rel="stylesheet" type="text/css" href="/index.css">
         <link rel="stylesheet" type="text/css" href="/bootstrap/css/bootstrap.css">
+        <link rel="stylesheet" type="text/css" href="/index.css">
+        <link id="theme" rel="stylesheet" type="text/css" href="">
+        <style id="font-size"></style>
+
         <link rel="icon" type="image/png" href="/favicon.png">
         <script src="/lib/jszip.js"></script>
         <script src="/util.js"></script>
@@ -42,7 +45,7 @@
                     <span class="glyphicon glyphicon-home" aria-hidden="true"></span>トップページへ戻る
                 </div>
                 <div class="menu-item" id="go-to-index">
-                    <span class="glyphicon glyphicon-option-vertical" aria-hidden="true"></span>作品の目次を見る
+                    <span class="glyphicon glyphicon-tags" aria-hidden="true"></span>作品の目次を見る
                 </div>
                 <div class="menu-item" id="go-back">
                     <span class="glyphicon glyphicon-arrow-right" aria-hidden="true"></span>前のページへ戻る
@@ -50,9 +53,39 @@
                 <div class="menu-item" id="go-next">
                     <span class="glyphicon glyphicon-arrow-left" aria-hidden="true"></span>次のページヘ進む
                 </div>
+
                 <div class="menu-item" id="fullscreen">
                     <span class="glyphicon glyphicon-fullscreen" aria-hidden="true"></span>全画面表示を切り替える
                 </div>
+
+                <div id="theme">
+                    <span class="glyphicon glyphicon-text-color" aria-hidden="true"></span>　色　
+                    <div id="theme-siro" style="color:black; background-color:white; border: solid 1px black; display:inline-block;">　　白　　</div>
+                    <div id="theme-kinari" style="color:#410; background-color:#eed; border: solid 1px black; display:inline-block;">　生成り　</div>
+                    <div id="theme-yoru" style="color:white; background-color:black; border: solid 1px white; display:inline-block;">　　夜　　</div>
+                </div>
+
+                <div id="size">
+                    <span class="glyphicon glyphicon-text-size" aria-hidden="true"></span>大きさ
+                    <div id="font-size-huge" style="display:inline-block; width:1.5em; height:3em;" class="btn">
+                        <span style="font-size: large; text-align:center;">巨大</span>
+                    </div>
+                    <div id="font-size-large" style="display:inline-block; width:1.5em; height:3em;" class="btn">
+                        <span style="font-size: medium; text-align:center;">大きめ</span>
+                    </div>
+                    <div id="font-size-normal" style="display:inline-block; width:1.5em; height:3em;" class="btn">
+                        <span style="font-size: small; text-align:center;">普通</span>
+                    </div>
+                </div>
+
+                <div id="animation">
+                    <span class="glyphicon glyphicon-film" aria-hidden="true"></span>動き　
+                    <div id="animation-none" style="border: solid 1px black; display:inline-block;">　　なし　　</div>
+                    <div id="animation-fast" style="border: solid 1px black; display:inline-block;">　　早い　　</div>
+                    <div id="animation-slow" style="border: solid 1px black; display:inline-block;">　遅い　</div>
+                </div>
+
+
                 <div class="menu-item" id="close-menu">
                     <span class="glyphicon glyphicon-remove-circle" aria-hidden="true"></span>メニューを閉じる
                 </div>

@@ -1,0 +1,38 @@
+#viewer {
+    background-color: black;
+}
+
+#viewer .page {
+    color: white;
+    background-color: black;
+    border: solid 1px dimgrey;
+}
+
+viewer #outer {
+    border: solid 1px dimgrey;
+}
+
+#viewer ::-moz-selection {
+    color: black;
+    background: white;
+}
+#viewer ::selection {
+    color: black;
+    background: white;
+}
+
+
+#viewer .topmenu {
+    color: white;
+    background-color: black;
+    border: solid 1px dimgrey;
+}
+
+#viewer .topmenu .menu-item:hover {
+    background-color: #444;
+}
+
+
+.btn {
+    border: solid 1px white;
+}
