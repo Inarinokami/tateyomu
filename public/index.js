@@ -402,7 +402,7 @@ window.addEventListener("load", function() {
         }
 
         // viewer
-        if(workData){
+        if(workData && episodeID){
             var pageBoudns = outer.getBoundingClientRect();
             var currentEpisodeIndex = workData.episodes.findIndex(function(episode){
                 return episode.id === episodeID;

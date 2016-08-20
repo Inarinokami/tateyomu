@@ -267,7 +267,7 @@ body {
     margin-top: 2em;
 }
 
-#viewer .page .content .author {
+#viewer #outer .page .content .author {
     margin-top: 8em;
 }
 
@@ -282,8 +282,6 @@ img.loading {
     right: 0;
     bottom: 0;
     margin: auto;
-    width: 66px;
-    height: 66px;
 }
 
 div.error {

@@ -37,6 +37,10 @@ app.get(/^\/raw\/works\/\d{19}(\/episodes\/\d{19})?$/, function(req, res) {
 
 app.use(express.static('public'));
 
+app.get(/^\/works\/\d{19}(\/episodes\/(\d{19}|index)(\/\d{1,4})?)?$/, function(req, res) {
+    res.sendFile(`${process.cwd()}/public/index.html`);
+});
+
 app.get(/.*/, function(req, res) {
     res.status(404).send('404 Not Found <a href="/">home</a>');
 });
