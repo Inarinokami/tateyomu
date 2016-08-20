@@ -78,7 +78,6 @@ window.addEventListener("load", function() {
 
         var header = document.createElement("div");
         header.classList.add("header");
-        header.textContent = outer.childNodes.length + 1;
 
         var page = document.createElement("div");
         page.classList.add("page");
@@ -371,6 +370,7 @@ window.addEventListener("load", function() {
             page.setAttribute("data-episode-index", "0");
             page.setAttribute("data-episode-page-index", i);
             page.style["z-index"] = "-0000" + pad4(i);
+            page.querySelector(".header").textContent = (i + 1) + "　目次";
         });
 
 
@@ -385,8 +385,12 @@ window.addEventListener("load", function() {
     function update() {
         if (urlInput.value.match(/^https:\/\/kakuyomu\.jp\/works\/\d{19}(\/episodes\/\d{19}(\/\d{1,4})?)?$/)) {
             read.removeAttribute("disabled");
+            document.querySelector(".epub").removeAttribute("disabled");
+            document.querySelector(".plaintext").removeAttribute("disabled");
         } else {
             read.setAttribute("disabled", "");
+            document.querySelector(".epub").setAttribute("disabled", "");
+            document.querySelector(".plaintext").setAttribute("disabled", "");
         }
 
         var pageBoudns = outer.getBoundingClientRect();
