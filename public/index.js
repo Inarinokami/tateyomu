@@ -299,9 +299,27 @@ window.addEventListener("load", function() {
     function renderEpisodePages(responseText){
         showViewer();
 
+
+
         var parser = new DOMParser();
         var doc = parser.parseFromString(responseText, "text/html");
         var episodeBody = doc.querySelector(".widget-episodeBody");
+
+        var ems = episodeBody.querySelectorAll("em");
+        for(var i = 0; i < ems.length; i++){
+            var em = ems[i];
+            for(var k = 0; k < em.textContent.length; k++){
+                var ruby = document.createElement("ruby");
+                var rb = document.createElement("rb");
+                rb.textContent = em.textContent[k];
+                var rt = document.createElement("rt");
+                rt.textContent = "丶";
+                ruby.appendChild(rb);
+                ruby.appendChild(rt);
+                em.parentNode.insertBefore(ruby, em);
+            }
+            em.parentNode.removeChild(em);
+        }
 
         var episodeTitleElement = document.createElement("h2");
         episodeTitleElement.classList.add("episode-title");
