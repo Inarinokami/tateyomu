@@ -36,3 +36,7 @@ viewer #outer {
 .btn {
     border: solid 1px white;
 }
+
+#viewer .topmenu .menu-item-button {
+    border: solid 1px white;
+}

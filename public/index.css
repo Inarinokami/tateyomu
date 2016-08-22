@@ -224,17 +224,30 @@ body {
     -ms-user-select: none;       /* Internet Explorer/Edge */
     user-select: none;
     cursor: default;
+
+    font-size: x-large;
 }
 
 #viewer .topmenu .menu-item {
     text-decoration: none;
-    font-size: x-large;
+
     white-space: nowrap;
+
+    margin-left: 20px;
+    margin-right: 20px;
 }
 
 #viewer .topmenu .menu-item:hover {
     background-color: #eee;
     text-decoration: none;
+}
+
+#viewer .topmenu .menu-item-button {
+    height: 120px;
+    border: solid 1px black;
+    display:inline-block;
+    text-align: center;
+    border-radius: 4px;
 }
 
 #viewer .episode-title {
@@ -286,7 +299,9 @@ body {
     padding: 40px;
     transition-timing-function: ease-out;
     transition-property: left, opacity;
-    transition-duration: 0.8s;
+    transition-duration: 0.5s;
+
+    border: solid 1px grey;
 }
 
 

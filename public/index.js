@@ -1,7 +1,6 @@
 "use strict";
 
 const timespan = 1.0;
-const pathPattern = /^\/works\/(\d{19})(\/episodes\/(\d{19}|index)(\/(\d{1,4}|last))?)?$/;
 
 function halfToFull(text){
     return text.replace(/([^!?！？])([!?！？]{2})(?![!?！？])/g, function(_, a, b){
@@ -27,6 +26,16 @@ function showLoading(){
     document.querySelector("#top").style["-webkit-filter"] = "blur(5px)";
     document.querySelector("#viewer").style["-webkit-filter"] = "blur(5px)";
     document.querySelector("img.loading").style["display"] = "block";
+}
+
+function closeLoading(){
+    document.querySelector("#top").style["-webkit-filter"] = "none";
+    document.querySelector("#viewer").style["-webkit-filter"] = "none";
+    document.querySelector("img.loading").style["display"] = "none";
+}
+
+function isLoading(){
+    return document.querySelector("img.loading").style["display"] === "block"
 }
 
 const cacheTable = {};
@@ -56,8 +65,6 @@ function get(url, callback){
 
 window.addEventListener("load", function() {
 
-
-
     function resize(){
         outer.style["transform"] = `scale(1.0)`;
         var bounds = outer.getBoundingClientRect();
@@ -68,29 +75,31 @@ window.addEventListener("load", function() {
         outer.style["transform-origin"] = scaleX > scaleY ? "50% 0%" : "0% 50%";
     }
 
-    function appendBlankPage(){
-        var content = document.createElement("div");
-        content.classList.add("content");
+    function paging(episodeBody){
 
-        var header = document.createElement("div");
-        header.classList.add("header");
+        function appendBlankPage(){
+            var content = document.createElement("div");
+            content.classList.add("content");
 
-        var page = document.createElement("div");
-        page.classList.add("page");
-        page.appendChild(header);
-        page.appendChild(content);
+            var header = document.createElement("div");
+            header.classList.add("header");
 
-        outer.appendChild(page);
+            var page = document.createElement("div");
+            page.classList.add("page");
+            page.appendChild(header);
+            page.appendChild(content);
 
-        return page;
-    }
+            outer.appendChild(page);
 
-    function paging(episodeBody, offset){
+            return page;
+        }
 
         function getLastPage(){
             return pageElements[pageElements.length - 1];
         }
 
+
+        // convert half-width chars into full-width chars //
         for(var i = 0; i < episodeBody.childNodes.length; i++){
             var paragraph = episodeBody.childNodes[i];
             for(var k = 0; k < paragraph.childNodes.length; k++){
@@ -108,9 +117,13 @@ window.addEventListener("load", function() {
 
         var pageElements = [appendBlankPage()];
 
+        // get the reference bounds of contents in pixels
         var contentBounds = getLastPage().querySelector(".content").getBoundingClientRect();
+
+        // make the page resizable depending on elements
         getLastPage().querySelector(".content").style["width"] = "auto";
 
+        // layout elements //
         while(episodeBody.childNodes.length > 0){
             var lastPage = getLastPage();
             var content = lastPage.querySelector(".content");
@@ -171,12 +184,11 @@ window.addEventListener("load", function() {
             }
         }
 
+        // clear temporary styles
         var contents = outer.querySelectorAll(".content");
         for(var i = 0; i < contents.length; i++){
             contents[i].style["width"] = "";
         }
-
-        resize();
 
         return pageElements;
     }
@@ -184,65 +196,62 @@ window.addEventListener("load", function() {
     function route(contentPath, callback) {
         var matches = /^\/works\/(\d{19})(\/episodes\/(\d{19}|index)(\/(\d{1,4}|last))?)?$/.exec(contentPath);
         if(matches){
-            var nextWorkID = matches[1];
+            // valid url //
             var nextEpisodeID = matches[2] ? matches[3] : "index";
             var nextPage = (matches[2] && matches[5]) || "1";
-            loadIndexPage(nextWorkID, function(){
-                loadEpisodePages(nextEpisodeID, function(){
-                    workID = nextWorkID;
+            loadIndexPage(matches[1], function(){
+                loadEpisodePages(workData, nextEpisodeID, function(){
                     episodeID = nextEpisodeID;
                     moveTo(nextPage, function(){
-                        resize();
                         viewer.style["display"] = "block";
                         top.style["display"] = "none";
+                        resize();
                         update();
                         closeLoading();
                     });
                 });
             });
         }else{
-            // invalid url
+            // invalid url //
             showTopPage();
             callback();
         }
     }
 
-    function loadWorkData(workID, callback){
-        if(workData === null || workData.id !== workID){
-            get(`/raw/works/${workID}`, function(responseText){
-                var doc = (new DOMParser()).parseFromString(responseText, "text/html");
-                workData = {
-                    id: workID,
-                    title: doc.querySelector("#workTitle").textContent,
-                    author: doc.querySelector("#workAuthor-activityName a").textContent,
-                    genre: doc.querySelector("#workGenre a").textContent,
-                    color: doc.querySelector("#workColor").style["background-color"],
-                    episodes: [{
-                        id: "index",
-                        title: "index",
-                        content: null,
-                        pages: null
-                    }]
-                };
-                var episodes = doc.querySelectorAll(".widget-toc-episode");
-                for(var i = 0; i < episodes.length; i++){
-                    var episode = episodes[i];
-                    var matches = /\/works\/\d{19}\/episodes\/(\d{19})/.exec(episode.querySelector("a").getAttribute("href"));
-                    workData.episodes.push({
-                        id: matches[1],
-                        title: episode.querySelector(".widget-toc-episode-titleLabel").textContent,
-                        content: null,   // null suggests "unloaded",
-                        pages: null
-                    });
-                }
-                callback(workData);
-            });
-        }else{
-            callback(workData);
-        }
+    // [pure] get the novel work data from the ID
+    function getWorkData(workID, callback){
+        get(`/raw/works/${workID}`, function(responseText){
+            var doc = (new DOMParser()).parseFromString(responseText, "text/html");
+            var dat = {
+                id: workID,
+                title: doc.querySelector("#workTitle").textContent,
+                author: doc.querySelector("#workAuthor-activityName a").textContent,
+                genre: doc.querySelector("#workGenre a").textContent,
+                color: doc.querySelector("#workColor").style["background-color"],
+                episodes: [{
+                    id: "index",
+                    title: "index",
+                    content: null,
+                    pages: null
+                }]
+            };
+            var episodes = doc.querySelectorAll(".widget-toc-episode");
+            for(var i = 0; i < episodes.length; i++){
+                var episode = episodes[i];
+                var matches = /\/works\/\d{19}\/episodes\/(\d{19})/.exec(episode.querySelector("a").getAttribute("href"));
+                dat.episodes.push({
+                    id: matches[1],
+                    title: episode.querySelector(".widget-toc-episode-titleLabel").textContent,
+                    content: null,   // null suggests "unloaded",
+                    pages: null
+                });
+            }
+            callback(dat);
+        });
     }
 
-    function loadEpisodePages(episodeID, callback){
+    // [impure] get the episode data from the id
+    function loadEpisodePages(workData, episodeID, callback){
         var episode = workData.episodes.find(function(episode){
             return episode.id === episodeID;
         });
@@ -268,6 +277,8 @@ window.addEventListener("load", function() {
             });
         }
     }
+
+
 
     function renderEpisodePages(responseText){
         showViewer();
@@ -299,14 +310,15 @@ window.addEventListener("load", function() {
         episodeTitleElement.textContent = doc.querySelector(".widget-episodeTitle").textContent;
         episodeBody.insertBefore(episodeTitleElement, episodeBody.firstChild);
 
-        var pages = paging(episodeBody, 1);
+        var pages = paging(episodeBody);
 
         return pages;
     }
 
     function loadIndexPage(nextWorkID, callback){
         if(workData === null || workData.id !== nextWorkID){
-            loadWorkData(nextWorkID, function(dat){
+            getWorkData(nextWorkID, function(dat){
+                workData = dat;
                 renderIndexPage(dat);
                 callback();
             });
@@ -360,7 +372,7 @@ window.addEventListener("load", function() {
             })();
         }
 
-        workData.episodes[0].pages = paging(contents, 0);
+        workData.episodes[0].pages = paging(contents);
         workData.episodes[0].pages.forEach(function(page, i){
             page.setAttribute("data-episode", "index");
             page.setAttribute("data-episode-index", "0");
@@ -370,21 +382,6 @@ window.addEventListener("load", function() {
         });
 
 
-    }
-
-    function home(){
-        document.querySelector("#url").value = "https://kakuyomu.jp" + window.location.pathname;
-        showTopPage();
-        history.pushState(null, null, "/");
-        update();
-
-        if(document.webkitFullscreenEnabled){
-            document.webkitExitFullscreen();
-        }else if(document.mozFullScreenEnabled){
-            document.mozExitFullscreen();
-        }else if(document.fullScreenEnabled){
-            document.exitFullscreen();
-        }
     }
 
     function update() {
@@ -417,7 +414,7 @@ window.addEventListener("load", function() {
                 var episodeIndex = inner.getAttribute("data-episode-index");
                 var pi = parseInt(inner.getAttribute("data-episode-page-index"));
                 //inner.style["display"] = "none";
-                inner.style["left"] = parseInt(inner.style["z-index"]) <= z ? "0px" : (pageBoudns.right + 200 + "px");
+                inner.style["left"] = parseInt(inner.style["z-index"]) <= z ? "0px" : (pageBoudns.width + 200 + "px");
             }
     /*
             for(var i = -1; i <= 1; i++){
@@ -452,7 +449,6 @@ window.addEventListener("load", function() {
 
     var page = 0;
     var path = "";
-    var workID = "";
     var episodeID = "";
 
     var workData = null;
@@ -490,7 +486,7 @@ window.addEventListener("load", function() {
     document.querySelector("button.epub").addEventListener("click", function() {
         var path = parseKakuyomuURL(urlInput.value);
         if(path){
-            loadWorkData(path.workID, function(workData){
+            getWorkData(path.workID, function(workData){
                 createEpub(workData, function(epubBlob){
                     download(`${workData.author}『${workData.title}』.epub`, epubBlob);
                     closeLoading();
@@ -503,7 +499,7 @@ window.addEventListener("load", function() {
     document.querySelector("button.plaintext").addEventListener("click", function() {
         var path = parseKakuyomuURL(urlInput.value);
         if(path){
-            loadWorkData(path.workID, function(work){
+            getWorkData(path.workID, function(work){
                 var i = 0;
                 var episodes = work.episodes.slice(1);
                 var title = work.title;
@@ -593,16 +589,18 @@ window.addEventListener("load", function() {
             // end of the work, ignore
             closeLoading();
         }else if(dest === -1){
-            loadEpisodePages(workData.episodes[currentEpisodeIndex - 1].id, function(){
-                episodeID = workData.episodes[currentEpisodeIndex - 1].id;
-                page = workData.episodes[currentEpisodeIndex - 1].pages.length - 1;
+            var episode = workData.episodes[currentEpisodeIndex - 1];
+            loadEpisodePages(workData, episode.id, function(){
+                episodeID = episode.id;
+                page = episode.pages.length - 1;
                 history.pushState(null, null, `/works/${workData.id}/episodes/${episodeID}/${page + 1}`);
                 update();
                 callback();
             });
         }else if(dest === currentEpisode.pages.length){
-            loadEpisodePages(workData.episodes[currentEpisodeIndex + 1].id, function(){
-                episodeID = workData.episodes[currentEpisodeIndex + 1].id;
+            var episode = workData.episodes[currentEpisodeIndex + 1];
+            loadEpisodePages(workData, episode.id, function(){
+                episodeID = episode.id;
                 page = 0;
                 history.pushState(null, null, `/works/${workData.id}/episodes/${episodeID}/${page + 1}`);
                 update();
@@ -610,11 +608,11 @@ window.addEventListener("load", function() {
             });
         }else{
             if(preload && dest === currentEpisode.pages.length - 1 && currentEpisodeIndex < workData.episodes.length - 1){
-                loadEpisodePages(workData.episodes[currentEpisodeIndex + 1].id, function(){
+                loadEpisodePages(workData, workData.episodes[currentEpisodeIndex + 1].id, function(){
                 });
             }
             //if(preload && dest === 0 && 2 < currentEpisodeIndex){
-            //    loadEpisodePages(workData.episodes[currentEpisodeIndex - 1].id, function(){
+            //    loadEpisodePages(workData, workData.episodes[currentEpisodeIndex - 1].id, function(){
             //    });
             //}
 
@@ -635,23 +633,22 @@ window.addEventListener("load", function() {
 
 
     document.querySelector("#go-home").addEventListener("click", function() {
-        home();
+        document.querySelector("#url").value = "https://kakuyomu.jp" + window.location.pathname;
+        showTopPage();
+        history.pushState(null, null, "/");
+        update();
+
+        if(document.webkitFullscreenEnabled){
+            document.webkitExitFullscreen();
+        }else if(document.mozFullScreenEnabled){
+            document.mozExitFullscreen();
+        }else if(document.fullScreenEnabled){
+            document.exitFullscreen();
+        }
     });
 
     document.querySelector("#go-to-index").addEventListener("click", function() {
-        route(`/works/${workID}`);
-    });
-
-    document.querySelector("#go-next").addEventListener("click", function() {
-        goto(page + 1 + 1, function(){
-            closeLoading();
-        });
-    });
-
-    document.querySelector("#go-back").addEventListener("click", function() {
-        goto(page + 1 - 1, function(){
-            closeLoading();
-        });
+        route(`/works/${workData.id}`);
     });
 
     document.querySelector("#fullscreen").addEventListener("click", function() {
@@ -707,43 +704,47 @@ window.addEventListener("load", function() {
 
     document.querySelector("#theme-siro").addEventListener("click", function(e){
         document.querySelector("#theme").setAttribute("href", "");
+        localStorage.removeItem('theme');
     });
 
     document.querySelector("#theme-kinari").addEventListener("click", function(e){
         document.querySelector("#theme").setAttribute("href", "/theme/kinari.css");
+        localStorage.setItem('theme', 'kinari');
     });
     document.querySelector("#theme-yoru").addEventListener("click", function(e){
         document.querySelector("#theme").setAttribute("href", "/theme/yoru.css");
+        localStorage.setItem('theme', 'yoru');
     });
 
-    document.querySelector("#font-size-huge").addEventListener("click", function(e){
-        get("/theme/huge.css", function(css){
-            document.querySelector("#font-size").textContent = css;
-            outer.innerHTML = "";
-            outer.style["transform"] = `scale(1.0)`;
-            renderIndexPage(workData);
-            episodeID = "index";
-            page = 0;
+    function loadFontSizeCSS(css){
+        document.querySelector("#font-size").textContent = css;
+        outer.innerHTML = "";
+        workData.episodes.forEach(function(episode){
+            episode.pages = null;
+        });
+        outer.style["transform"] = `scale(1.0)`;
+        var currentEpisodeID = episodeID;
+        renderIndexPage(workData);
+        episodeID = currentEpisodeID;
+        loadEpisodePages(workData, episodeID, function(){
             resize();
             update();
             closeLoading();
         });
+    }
+
+    document.querySelector("#font-size-huge").addEventListener("click", function(e){
+        get("/theme/huge.css", function(css){
+            loadFontSizeCSS(css);
+        });
     });
     document.querySelector("#font-size-large").addEventListener("click", function(e){
-        document.querySelector("#font-size").setAttribute("href", "/theme/large.css");
-        resize();
-        update();
+        get("/theme/large.css", function(css){
+            loadFontSizeCSS(css);
+        });
     });
     document.querySelector("#font-size-normal").addEventListener("click", function(e){
-        document.querySelector("#font-size").textContent = "";
-        outer.innerHTML = "";
-        outer.style["transform"] = `scale(1.0)`;
-        renderIndexPage(workData);
-        episodeID = "index";
-        page = 0;
-        resize();
-        update();
-        closeLoading();
+        loadFontSizeCSS("");
     });
 
 
@@ -759,20 +760,19 @@ window.addEventListener("load", function() {
 
 
 
-    function closeLoading(){
-        top.style["-webkit-filter"] = "none";
-        viewer.style["-webkit-filter"] = "none";
-        document.querySelector("img.loading").style["display"] = "none";
-    }
 
-    function isLoading(){
-        return document.querySelector("img.loading").style["display"] === "block"
-    }
+
+
 
     function showError(){
         top.style["-webkit-filter"] = "blur(5px)";
         viewer.style["-webkit-filter"] = "blur(5px)";
         document.querySelector(".error").style["display"] = "block";
+    }
+
+    var theme = localStorage.getItem("theme");
+    if(theme){
+        document.querySelector("#theme").setAttribute("href", `/theme/${theme}.css`);
     }
 
     route(window.location.pathname, function(){

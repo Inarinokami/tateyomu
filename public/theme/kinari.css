@@ -11,6 +11,10 @@ viewer #outer {
     box-shadow: 0px 0px 50px 0px rgba(0, 0, 0, 0.5);
 }
 
+#viewer .topmenu {
+    background-image: url("/011-subtle-light-patterns.jpg");
+    background-repeat: repeat;
+}
 
 #viewer ::-moz-selection {
     color: white;
