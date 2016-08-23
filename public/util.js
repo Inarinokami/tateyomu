@@ -57,3 +57,25 @@ function toISOString(date){
         ':' + pad(date.getUTCSeconds()) +
         'Z';
 }
+
+
+
+function halfToFull(text){
+    return text.replace(/([^!?！？])([!?！？]{2})(?![!?！？])/g, function(_, a, b){
+        return a + (
+            b == "!?" ? "⁉" :
+            b == "?!" ? "⁈" :
+            b == "!!" ? "‼" :
+            b == "！？" ? "⁉" :
+            b == "？！" ? "⁈" :
+            b == "！！" ? "‼" :
+            b)
+    }).replace(/[a-zA-Z0-9]/g, function(d){
+        return String.fromCharCode(0xFEE0 + d.charCodeAt(0));
+    }).replace(/―/g, "—").replace(/\(/g, "（").replace(/\)/g, "）")
+}
+
+function pad4(value){
+    var s = "0000" + value.toFixed(0);
+    return s.slice(s.length - 4, s.length);
+}

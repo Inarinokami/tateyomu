@@ -2,67 +2,6 @@
 
 const timespan = 1.0;
 
-function halfToFull(text){
-    return text.replace(/([^!?！？])([!?！？]{2})(?![!?！？])/g, function(_, a, b){
-        return a + (
-            b == "!?" ? "⁉" :
-            b == "?!" ? "⁈" :
-            b == "!!" ? "‼" :
-            b == "！？" ? "⁉" :
-            b == "？！" ? "⁈" :
-            b == "！！" ? "‼" :
-            b)
-    }).replace(/[a-zA-Z0-9]/g, function(d){
-        return String.fromCharCode(0xFEE0 + d.charCodeAt(0));
-    }).replace(/―/g, "—").replace(/\(/g, "（").replace(/\)/g, "）")
-}
-
-function pad4(value){
-    var s = "0000" + value.toFixed(0);
-    return s.slice(s.length - 4, s.length);
-}
-
-function showLoading(){
-    document.querySelector("#top").style["-webkit-filter"] = "blur(5px)";
-    document.querySelector("#viewer").style["-webkit-filter"] = "blur(5px)";
-    document.querySelector("img.loading").style["display"] = "block";
-}
-
-function closeLoading(){
-    document.querySelector("#top").style["-webkit-filter"] = "none";
-    document.querySelector("#viewer").style["-webkit-filter"] = "none";
-    document.querySelector("img.loading").style["display"] = "none";
-}
-
-function isLoading(){
-    return document.querySelector("img.loading").style["display"] === "block"
-}
-
-const cacheTable = {};
-
-function get(url, callback){
-    if(cacheTable[url]){
-        callback(cacheTable[url]);
-    }else{
-        showLoading();
-        var xhr = new XMLHttpRequest();
-        xhr.onreadystatechange = function() {
-            if (xhr.readyState == 4) { // DONE
-                if (xhr.status == 200 || xhr.status == 304) { // OK
-                    cacheTable[url] = xhr.responseText;
-                    callback(xhr.responseText);
-                }else{
-                    console.log("Error: " + xhr.status);
-                    closeLoading();
-                    document.querySelector(".error").style["visibility"] = "visible";
-                }
-            }
-        };
-        xhr.open("GET", url);
-        xhr.send();
-    }
-}
-
 window.addEventListener("load", function() {
 
     function resize(){
@@ -131,50 +70,72 @@ window.addEventListener("load", function() {
             var bounds = content.getBoundingClientRect();
             if(contentBounds.width < bounds.width){
 
-                var paragraph = content.childNodes[content.childNodes.length - 1];
-                content.removeChild(paragraph);
-                episodeBody.insertBefore(paragraph, episodeBody.firstChild);
+                var stray = content.childNodes[content.childNodes.length - 1];
+                content.removeChild(stray);
+                episodeBody.insertBefore(stray, episodeBody.firstChild);
 
-                var p = document.createElement("p");
-                content.appendChild(p);
+                if(stray.nodeType === Node.TEXT_NODE){
+                    throw new Error();
+                }else if(stray.nodeType == Node.ELEMENT_NODE){
 
-                while(paragraph.childNodes.length > 0){
-                    var e = paragraph.childNodes[0];
-                    p.appendChild(e);
-                    var bounds = content.getBoundingClientRect();
-                    if(contentBounds.width < bounds.width){
-                        if(e.nodeType === Node.TEXT_NODE){
-                            var remainText = "";
-                            while(e.textContent.length > 0){
-                                var bounds = content.getBoundingClientRect();
-                                if(bounds.width < contentBounds.width){
-                                    break;
+                    if(
+                        stray.nodeName === "RUBY" ||
+                        stray.nodeName === "IMG"
+                    ){
+                        content.appendChild(stray);
+                    }else if(
+                        stray.nodeName === "P" ||
+                        stray.nodeName === "DIV" ||
+                        stray.nodeName === "SPAN"
+                    ){
+
+                        var padding = document.createElement(stray.nodeName);
+                        content.appendChild(padding);
+
+                        while(stray.childNodes.length > 0){
+                            var e = stray.childNodes[0];
+                            padding.appendChild(e);
+                            var bounds = content.getBoundingClientRect();
+                            if(contentBounds.width < bounds.width){
+                                if(e.nodeType === Node.TEXT_NODE){
+                                    var remainText = "";
+                                    while(e.textContent.length > 0){
+                                        var bounds = content.getBoundingClientRect();
+                                        if(bounds.width < contentBounds.width){
+                                            break;
+                                        }else{
+                                            var lastChar = e.textContent[e.textContent.length - 1];
+                                            var w = lastChar === "。" || lastChar === "、" || lastChar === "」" || lastChar === "）" ? 2 : 1;
+                                            remainText = e.textContent.slice(e.textContent.length - w) + remainText;
+                                            e.textContent = e.textContent.slice(0, e.textContent.length - w);
+                                        }
+                                    }
+
+                                    if(remainText.length > 0){
+                                        stray.insertBefore(document.createTextNode(remainText), stray.firstChild);
+                                    }
+
+                                }else if(e.nodeType === Node.ELEMENT_NODE && e.nodeName === "RUBY"){
+                                    padding.removeChild(e);
+                                    stray.insertBefore(e, stray.firstChild);
+                                }else if(e.nodeType === Node.ELEMENT_NODE && e.nodeName === "BR"){
+                                    padding.removeChild(e);
+                                    stray.insertBefore(e, stray.firstChild);
+                                }else if(e.nodeType === Node.ELEMENT_NODE && e.nodeName === "A"){
+                                    padding.removeChild(e);
+                                    stray.insertBefore(e, stray.firstChild);
                                 }else{
-                                    var lastChar = e.textContent[e.textContent.length - 1];
-                                    var w = lastChar === "。" || lastChar === "、" || lastChar === "」" || lastChar === "）" ? 2 : 1;
-                                    remainText = e.textContent.slice(e.textContent.length - w) + remainText;
-                                    e.textContent = e.textContent.slice(0, e.textContent.length - w);
+                                    throw new Error();
                                 }
+                                break;
                             }
-
-                            if(remainText.length > 0){
-                                paragraph.insertBefore(document.createTextNode(remainText), paragraph.firstChild);
-                            }
-
-                        }else if(e.nodeType === Node.ELEMENT_NODE && e.nodeName === "RUBY"){
-                            p.removeChild(e);
-                            paragraph.insertBefore(e, paragraph.firstChild);
-                        }else if(e.nodeType === Node.ELEMENT_NODE && e.nodeName === "BR"){
-                            p.removeChild(e);
-                            paragraph.insertBefore(e, paragraph.firstChild);
-                        }else if(e.nodeType === Node.ELEMENT_NODE && e.nodeName === "A"){
-                            p.removeChild(e);
-                            paragraph.insertBefore(e, paragraph.firstChild);
-                        }else{
-                            throw new Error();
                         }
-                        break;
+                    }else{
+                        throw new Error();
                     }
+
+                }else{
+                    throw new Error();
                 }
 
                 if(episodeBody.childNodes.length > 0){
@@ -196,7 +157,7 @@ window.addEventListener("load", function() {
     function route(contentPath, callback) {
         var matches = /^\/works\/(\d{19})(\/episodes\/(\d{19}|index)(\/(\d{1,4}|last))?)?$/.exec(contentPath);
         if(matches){
-            // valid url //
+            // valid valid url //
             var nextEpisodeID = matches[2] ? matches[3] : "index";
             var nextPage = (matches[2] && matches[5]) || "1";
             loadIndexPage(matches[1], function(){
@@ -211,10 +172,41 @@ window.addEventListener("load", function() {
                     });
                 });
             });
+
         }else{
             // invalid url //
             showTopPage();
             callback();
+        }
+    }
+
+    function routeExternalURL(url){
+        var matches = /^https:\/\/kakuyomu\.jp\/works\/(\d{19})(\/episodes\/(\d{19}|index)(\/(\d{1,4}|last))?)?$/.exec(url);
+        if(matches){
+            route(urlInput.value.slice("https://kakuyomu.jp".length));
+        }else{
+            var matches = /^http\:\/\/www\.aozora\.gr\.jp\/cards\/\d+\/files\/\d+_\d+\.html$/.exec(url);
+            if(matches){
+                // valid aozora url
+                outer.innerHTML = "";
+                workData = null;
+                episodeID = null;
+                page = 0;
+                showViewer();
+                getAsArrayBuffer(`/raw/aozora${url.slice("http://www.aozora.gr.jp".length)}`, function(arrayBuffer){
+                    var decoder = new TextDecoder("shift-jis");
+                    var sourceXHTML = decoder.decode(arrayBuffer);
+                    var doc = (new DOMParser()).parseFromString(sourceXHTML, "text/html");
+                    var mainText = doc.querySelector(".main_text");
+                    //console.log(mainText.textContent);
+                    var pages = paging(mainText);
+                    showViewer();
+                    closeLoading();
+                });
+            }else{
+
+                callback();
+            }
         }
     }
 
@@ -387,7 +379,10 @@ window.addEventListener("load", function() {
     function update() {
 
         // top
-        if (urlInput.value.match(/^https:\/\/kakuyomu\.jp\/works\/\d{19}(\/episodes\/\d{19}(\/\d{1,4})?)?$/)) {
+        if (
+            urlInput.value.match(/^https:\/\/kakuyomu\.jp\/works\/\d{19}(\/episodes\/\d{19}(\/\d{1,4})?)?$/) ||
+            urlInput.value.match(/^http\:\/\/www\.aozora\.gr\.jp\/cards\/\d+\/files\/\d+_\d+\.html$/)
+        ) {
             read.removeAttribute("disabled");
             document.querySelector(".epub").removeAttribute("disabled");
             document.querySelector(".plaintext").removeAttribute("disabled");
@@ -472,7 +467,7 @@ window.addEventListener("load", function() {
     // top menu buttons ///////////////
 
     read.addEventListener("click", function() {
-        route(urlInput.value.slice("https://kakuyomu.jp".length));
+        routeExternalURL(urlInput.value);
     });
 
     function parseKakuyomuURL(url){

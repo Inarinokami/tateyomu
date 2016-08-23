@@ -11,6 +11,7 @@
         <link rel="icon" type="image/png" href="/favicon.png">
         <script src="/lib/jszip.js"></script>
         <script src="/util.js"></script>
+        <script src="/xhr.js"></script>
         <script src="/index.js"></script>
         <script src="/kakuyomu.js"></script>
         <script src="/epub.js"></script>
@@ -98,7 +99,7 @@
                     id="url"
                     type="text"
                     placeholder="https://kakuyomu.jp/works/000000000000000000"
-                    pattern="^https:\/\/kakuyomu\.jp\/works\/\d{19}(\/episodes/\(d{19}|index)(\/\d{1,4})?)?$"
+                    pattern="(^https:\/\/kakuyomu\.jp\/works\/\d{19}(\/episodes/\(d{19}|index)(\/\d{1,4})?)?$)|(^http\:\/\/www\.aozora\.gr\.jp\/cards\/\d+\/files\/\d+_\d+\.html$)"
                     title="カクヨムの作品ページのＵＲＬを入力してください。"
                     maxlength="79"
                 ></input>

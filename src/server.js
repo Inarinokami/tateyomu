@@ -14,7 +14,7 @@ app.get(/^\/raw\/works\/\d{19}(\/episodes\/\d{19})?$/, function(req, res) {
     request(url, function(error, response, body) {
         if (!error && response.statusCode == 200) {
             res.send(body);
-            if(pageview && path.match(/^\/works\/\d{19}\/episodes\/\d{19}$/)){
+            if (pageview && path.match(/^\/works\/\d{19}\/episodes\/\d{19}$/)) {
                 request({
                     method: "POST",
                     url: url + "/read",
@@ -25,10 +25,10 @@ app.get(/^\/raw\/works\/\d{19}(\/episodes\/\d{19})?$/, function(req, res) {
                     body: null
                 });
             }
-        }else if (!error && response.statusCode == 404) {
+        } else if (!error && response.statusCode == 404) {
             res.status(404);
             res.end();
-        }else{
+        } else {
             res.status(500);
             res.end();
             console.log(`error url:${url} code:${response.statusCode}`);
@@ -37,21 +37,32 @@ app.get(/^\/raw\/works\/\d{19}(\/episodes\/\d{19})?$/, function(req, res) {
 });
 
 // aozora bunko
-app.get(/^\/aozora\/cards\/\d{6}\/files\/\d{3}_\d{5}\.html$/, function(req, res) {
-    var path = req.path.slice("/aozora".length);
-    var url = "http://www.aozora.gr.jp" + path;
-    request(url, function(error, response, body) {
-        if (!error && response.statusCode == 200) {
-            res.send(body);
-        }else if (!error && response.statusCode == 404) {
-            res.status(404);
-            res.end();
-        }else{
-            res.status(500);
-            res.end();
-            console.log(`error url:${url} code:${response.statusCode}`);
+app.get(/^\/raw\/aozora\/cards\/\d+\/files\/\d+_\d+\.html$/, function(req, res) {
+    var path = req.path.slice("/raw/aozora".length);
+    http.get({
+            hostname: 'www.aozora.gr.jp',
+            port: 80,
+            path: path,
+            method: 'GET',
+            headers: {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/52.0.2743.116 Safari/537.36'
+            }
+        },
+        function(r) {
+            var data = [];
+            r.setEncoding('binary');
+            r.on('data', (chunk) => {
+                data.push(new Buffer(chunk, 'binary'));
+            });
+            r.on('end', () => {
+                var img = Buffer.concat(data);
+                res.write(img);
+                res.end();
+            });
+        }).on('error', (e) => {
+            console.log(e.message);
         }
-    });
+    );
 });
 
 app.use(express.static('public'));
