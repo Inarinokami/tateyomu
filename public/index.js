@@ -399,7 +399,11 @@ window.addEventListener("load", function() {
 
         // viewer
         if(workData && episodeID){
+            var currentScale = outer.style["transform"];
+            outer.style["transform"] = `scale(1.0)`;
             var pageBoudns = outer.getBoundingClientRect();
+            outer.style["transform"] = currentScale;
+
             var currentEpisodeIndex = workData.episodes.findIndex(function(episode){
                 return episode.id === episodeID;
             });

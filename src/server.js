@@ -7,6 +7,7 @@ var app = express();
 
 var pageview = false;
 
+// kakuyomu
 app.get(/^\/raw\/works\/\d{19}(\/episodes\/\d{19})?$/, function(req, res) {
     var path = req.path.slice("/raw".length);
     var url = "https://kakuyomu.jp" + path;
@@ -24,6 +25,24 @@ app.get(/^\/raw\/works\/\d{19}(\/episodes\/\d{19})?$/, function(req, res) {
                     body: null
                 });
             }
+        }else if (!error && response.statusCode == 404) {
+            res.status(404);
+            res.end();
+        }else{
+            res.status(500);
+            res.end();
+            console.log(`error url:${url} code:${response.statusCode}`);
+        }
+    });
+});
+
+// aozora bunko
+app.get(/^\/aozora\/cards\/\d{6}\/files\/\d{3}_\d{5}\.html$/, function(req, res) {
+    var path = req.path.slice("/aozora".length);
+    var url = "http://www.aozora.gr.jp" + path;
+    request(url, function(error, response, body) {
+        if (!error && response.statusCode == 200) {
+            res.send(body);
         }else if (!error && response.statusCode == 404) {
             res.status(404);
             res.end();
