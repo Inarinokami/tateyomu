@@ -348,6 +348,9 @@ window.addEventListener("load", function() {
 
     // [impure] get the episode data from the id
     function loadEpisodePages(workData, episodeID, callback) {
+        if(episodeID === "index"){
+            callback(workData.episodes[0]);
+        }
         var episode = workData.episodes.find(function(episode) {
             return episode.id === episodeID;
         });
@@ -849,13 +852,20 @@ ${work.introduction}`
 
     function loadFontSizeCSS(css) {
         document.querySelector("#font-size").textContent = css;
-        outer.innerHTML = "";
+        container.innerHTML = "";
         workData.episodes.forEach(function(episode) {
             episode.pages = null;
         });
         outer.style["transform"] = `scale(1.0)`;
+        var cei = currentEpisodeIndex;
+        workData.episodes.forEach(function(episode){
+            episode.pages = null;
+        });        
         renderIndexPage(workData);
-        loadEpisodePages(workData, workData.episodes[currentEpisodeIndex], function() {
+
+
+        loadEpisodePages(workData, workData.episodes[cei].id, function() {
+            currentEpisodeIndex = cei;
             resize();
             update();
             closeLoading();
