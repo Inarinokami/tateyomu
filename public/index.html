@@ -10,11 +10,11 @@
 
         <link rel="icon" type="image/png" href="/favicon.png">
         <script src="/lib/jszip.js"></script>
-        <script src="/util.js"></script>
-        <script src="/xhr.js"></script>
-        <script src="/index.js"></script>
-        <script src="/kakuyomu.js"></script>
-        <script src="/epub.js"></script>
+        <script src="/js/util.js"></script>
+        <script src="/js/xhr.js"></script>
+        <script src="/js/index.js"></script>
+        <script src="/js/kakuyomu.js"></script>
+        <script src="/js/epub.js"></script>
         <title>タテヨム | 小説は、縦書きで読もう。</title>
 
         <meta name="description" content="カクヨム作品を縦書き表示・ページ送り操作で閲覧できる非公式サービスです。epub形式への変換や、作品データのバックアップもできます。">
@@ -40,7 +40,10 @@
     <body>
 
         <div id="viewer">
-            <div id="outer"></div>
+            <div id="outer">
+                <div id="container"></div>
+                <img class="mapping" src="/mapping.png"></img>
+            </div>
             <div class="topmenu">
                 <div class="menu-item" id="go-home">
                     <span class="glyphicon glyphicon-home" aria-hidden="true"></span>トップページへ戻る
@@ -134,6 +137,7 @@
                     　エピソードのＵＲＬを入力すると、そのエピソードから読み始めることもできます。<br>
                     　
                     <br>
+                    <strong>※このサービスはまだまったくの開発途中の段階にあります。不具合が多いと思いますが、きっとそのうち直ります。</strong><br>
                     <br>
 
                     <a

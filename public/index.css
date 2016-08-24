@@ -358,3 +358,35 @@ div.error {
     font-size: x-large;
     border: solid 1px black;
 }
+
+
+
+img.gaiji {
+    width: 1em;
+    height: 1em;
+    overflow: hidden;
+    border: solid 1px red;
+}
+
+span.notes {
+    display: none;
+}
+
+
+.mapping {
+    display: none;
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0px;
+    left: 0px;
+}
+
+
+
+/****** aozora **********/
+
+.naka-midashi {
+    margin: 1em;
+    margin-top: 7em;
+}
