@@ -23,7 +23,6 @@ function paging(episodeBody) {
         return pageElements[pageElements.length - 1];
     }
 
-
     // convert half-width chars into full-width chars //
     for (var i = 0; i < episodeBody.childNodes.length; i++) {
         var paragraph = episodeBody.childNodes[i];
@@ -49,8 +48,6 @@ function paging(episodeBody) {
 
     // make the page resizable depending on elements
     getLastPage().querySelector(".content").style["width"] = "auto";
-
-
 
     function _paging(parent) {
 

@@ -1,5 +1,7 @@
 "use strict";
 
+
+
 // [pure] get the novel work data from the ID
 function getWorkData(workID, callback) {
     get(`/raw/works/${workID}`, function(responseText) {
@@ -11,6 +13,8 @@ function getWorkData(workID, callback) {
             author: doc.querySelector("#workAuthor-activityName a").textContent,
             genre: doc.querySelector("#workGenre a").textContent,
             color: doc.querySelector("#workColor").style["background-color"],
+            catchphrase: doc.querySelector("#catchphrase-body").textContent,
+            introduction: doc.querySelector("#introduction").textContent,
             episodes: [{
                 id: "index",
                 title: "index",
@@ -47,11 +51,14 @@ function loadEpisodePages(workData, episodeID, callback) {
         // loaded, ignore
         callback(episode);
     } else {
+        showViewer();
         get(`/raw/works/${workData.id}/episodes/${episode.id}`, function(responseText) {
             var episodeIndex = workData.episodes.findIndex(function(episode) {
                 return episode.id === episodeID
             });
-            episode.pages = renderEpisodePages(responseText);
+
+            var episodeBody = renderEpisodePages(responseText);
+            episode.pages = paging(episodeBody);
             episode.pages.forEach(function(page, i) {
                 page.setAttribute("data-episode-index", episodeIndex);
                 page.setAttribute("data-episode-page-index", i);

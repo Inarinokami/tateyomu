@@ -31,7 +31,7 @@ app.get(/^\/raw\/works\/\d{19}(\/episodes\/\d{19})?$/, function(req, res) {
         } else {
             res.status(500);
             res.end();
-            console.log(`error url:${url} code:${response.statusCode}`);
+            console.log(`error url:${url} code:${res.statusCode}`);
         }
     });
 });

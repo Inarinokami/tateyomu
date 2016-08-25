@@ -2,22 +2,32 @@
 
 const timespan = 1.0;
 
+function showTopPage() {
+    document.querySelector("#top").style["display"] = "block";
+    document.querySelector("#viewer").style["display"] = "none";
+}
+
+function showViewer() {
+    document.querySelector("#viewer").style["display"] = "block";
+    document.querySelector("#top").style["display"] = "none";
+}
+
+function showError() {
+    document.querySelector("#top").style["-webkit-filter"] = "blur(5px)";
+    document.querySelector("#viewer").style["-webkit-filter"] = "blur(5px)";
+    document.querySelector(".error").style["display"] = "block";
+}
+
 window.addEventListener("load", function() {
 
     function pushURL(){
-        if(app.site === "kakuyomu"){
+        if(app.workData.site === "kakuyomu"){
             history.pushState(null, null, `/works/${app.workData.id}/episodes/${episode.id}/${app.currentPage + 1}`);
-        }else if(app.site === "aozora"){
+        }else if(app.workData.site === "aozora"){
 
         }else{
             throw new Error();
         }
-    }
-
-    function showError() {
-        document.querySelector("#top").style["-webkit-filter"] = "blur(5px)";
-        document.querySelector("#viewer").style["-webkit-filter"] = "blur(5px)";
-        document.querySelector(".error").style["display"] = "block";
     }
 
     function loadFontSizeCSS(css) {
@@ -44,13 +54,16 @@ window.addEventListener("load", function() {
         });
     }
 
+    ////////////////////////////////////////////////////////////////////////////
+    // application state ///////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////
+
     var app = {
-        workData: null,
-        currentEpisodeIndex: null,
+        workData: null,             // WorkData or null
+        currentEpisodeIndex: null,  // number or null
         currentPage: 0,
         preload: true,
-        menuVisible: false,
-        site: null
+        menuVisible: false
     };
 
     var container = document.querySelector("div#container");
@@ -62,9 +75,14 @@ window.addEventListener("load", function() {
     var viewer = document.querySelector("#viewer");
     var top = document.querySelector("#top");
 
-    // top menu buttons ///////////////
+
+    ////////////////////////////////////////////////////////////////////////////
+    // event handling //////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////
+
+    // top menu buttons ////////////////////////////////////////////////////////
     document.querySelector("#read").addEventListener("click", function() {
-        routeExternalURL(urlInput.value);
+        routeExternalURL(app, urlInput.value);
     });
 
     document.querySelector("button.epub").addEventListener("click", function() {
@@ -96,10 +114,18 @@ window.addEventListener("load", function() {
             update(app);
         }, 0);
     });
-    urlInput.addEventListener("change", function(){
+    document.querySelector("input#url").addEventListener("change", function(){
         update(app);
     });
+    document.querySelector("input#url").addEventListener("keydown", function(e) {
+        setTimeout(function() {
+            update(app);
+            document.querySelector(".error").style["visibility"] = "hidden";
+        }, 0)
+    });
 
+
+    // viewer //////////////////////////////////////////////////////////////////
     outer.addEventListener("click", function(e) {
         if(app.menuVisible){
             document.querySelector(".topmenu").style["left"] = "-500px";
@@ -121,6 +147,24 @@ window.addEventListener("load", function() {
         }
     });
 
+    window.addEventListener("popstate", function(e) {
+        route(app, window.location.pathname);
+    });
+
+    window.addEventListener("resize", function(e) {
+        update(app);
+        resize();
+    });
+
+    window.addEventListener("keydown", function(e) {
+        if (app.currentPage !== "last" && document.querySelector("img.loading").style["display"] !== "block") {
+            goto(app, app.currentPage + 1 + (e.keyCode === 37 ? 1 : 0) - (e.keyCode === 39 ? 1 : 0), function() {
+                closeLoading();
+            });
+        }
+    });
+
+    // menu ///////////////////////////////////////////////////////////////////
     document.querySelector("#go-home").addEventListener("click", function() {
         document.querySelector("#url").value = "https://kakuyomu.jp" + window.location.pathname;
         showTopPage();
@@ -162,35 +206,6 @@ window.addEventListener("load", function() {
         }
     });
 
-    document.querySelector("#close-menu").addEventListener("click", function() {
-        document.querySelector(".topmenu").style["left"] = "-500px";
-        app.menuVisible = false;
-    });
-
-    window.addEventListener("popstate", function(e) {
-        route(app, window.location.pathname);
-    });
-
-    window.addEventListener("resize", function(e) {
-        update(app);
-        resize();
-    });
-
-    window.addEventListener("keydown", function(e) {
-        if (app.currentPage !== "last" && document.querySelector("img.loading").style["display"] !== "block") {
-            goto(app, app.currentPage + 1 + (e.keyCode === 37 ? 1 : 0) - (e.keyCode === 39 ? 1 : 0), function() {
-                closeLoading();
-            });
-        }
-    });
-
-    document.querySelector("input#url").addEventListener("keydown", function(e) {
-        setTimeout(function() {
-            update(app);
-            document.querySelector(".error").style["visibility"] = "hidden";
-        }, 0)
-    });
-
     document.querySelector("#theme-siro").addEventListener("click", function(e) {
         document.querySelector("#theme").setAttribute("href", "");
         localStorage.removeItem('theme');
@@ -200,9 +215,20 @@ window.addEventListener("load", function() {
         document.querySelector("#theme").setAttribute("href", "/theme/kinari.css");
         localStorage.setItem('theme', 'kinari');
     });
+
     document.querySelector("#theme-yoru").addEventListener("click", function(e) {
         document.querySelector("#theme").setAttribute("href", "/theme/yoru.css");
         localStorage.setItem('theme', 'yoru');
+    });
+
+    document.querySelector("#font-size-normal").addEventListener("click", function(e) {
+        loadFontSizeCSS("");
+    });
+
+    document.querySelector("#font-size-large").addEventListener("click", function(e) {
+        get("/theme/large.css", function(css) {
+            loadFontSizeCSS(css);
+        });
     });
 
     document.querySelector("#font-size-huge").addEventListener("click", function(e) {
@@ -210,14 +236,15 @@ window.addEventListener("load", function() {
             loadFontSizeCSS(css);
         });
     });
-    document.querySelector("#font-size-large").addEventListener("click", function(e) {
-        get("/theme/large.css", function(css) {
-            loadFontSizeCSS(css);
-        });
+
+    document.querySelector("#close-menu").addEventListener("click", function() {
+        document.querySelector(".topmenu").style["left"] = "-500px";
+        app.menuVisible = false;
     });
-    document.querySelector("#font-size-normal").addEventListener("click", function(e) {
-        loadFontSizeCSS("");
-    });
+
+    ////////////////////////////////////////////////////////////////////////////
+    // initialization /////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////
 
     // load ui theme
     var theme = localStorage.getItem("theme");
