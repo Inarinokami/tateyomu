@@ -39,40 +39,42 @@ function update(app) {
 
         var inners = outer.querySelectorAll("div#container > div");
         var cp = container.querySelector(`[data-episode-index="${app.currentEpisodeIndex}"][data-episode-page-index="${app.currentPage}"]`);
-        var z = parseInt(cp.style["z-index"]);
-        var left = false;
-        for (var i = 0; i < inners.length; i++) {
-            var inner = inners[i];
-            var episodeIndex = parseInt(inner.getAttribute("data-episode-index"));
-            var pi = parseInt(inner.getAttribute("data-episode-page-index"));
-            //inner.style["display"] = "none";
-            inner.style["left"] = parseInt(inner.style["z-index"]) <= z ? "0px" : (pageBoudns.width + 200 + "px");
-            inner.style["display"] = "none";
-        }
-        var currentEpisode = app.workData.episodes[app.currentEpisodeIndex];
-        for(var i = -2; i <= 2; i++){
-            var index = app.currentPage + i;
-            if(0 <= index && index < app.workData.episodes[app.currentEpisodeIndex].pages.length){
-                var page = container.querySelector(`[data-episode-index="${app.currentEpisodeIndex}"][data-episode-page-index="${index}"]`);
-                page.style["display"] = "block";
-            }else if(index < 0 && 0 < app.currentEpisodeIndex){
-                var previousEpisode = app.workData.episodes[app.currentEpisodeIndex - 1];
-                if(previousEpisode.pages){
-                    var page = container.querySelector(`[data-episode-index="${app.currentEpisodeIndex - 1}"][data-episode-page-index="${previousEpisode.pages.length + index}"]`);
-                    if(page){
-                        page.style["display"] = "block";
-                    }
-                }
-            }else if(currentEpisode.pages.length <= index && app.currentEpisodeIndex < app.workData.episodes.length - 1){
-                var nextEpisode = app.workData.episodes[app.currentEpisodeIndex + 1];
-                if(nextEpisode.pages){
-                    var page = container.querySelector(`[data-episode-index="${app.currentEpisodeIndex + 1}"][data-episode-page-index="${index - currentEpisode.pages.length}"]`);
-                    if(page){
-                        page.style["display"] = "block";
-                    }
-                }
+        if(cp){
+            var z = parseInt(cp.style["z-index"]);
+            var left = false;
+            for (var i = 0; i < inners.length; i++) {
+                var inner = inners[i];
+                var episodeIndex = parseInt(inner.getAttribute("data-episode-index"));
+                var pi = parseInt(inner.getAttribute("data-episode-page-index"));
+                //inner.style["display"] = "none";
+                inner.style["left"] = parseInt(inner.style["z-index"]) <= z ? "0px" : (pageBoudns.width + 200 + "px");
+                inner.style["display"] = "none";
             }
+            var currentEpisode = app.workData.episodes[app.currentEpisodeIndex];
+            for(var i = -2; i <= 2; i++){
+                var index = app.currentPage + i;
+                if(0 <= index && index < app.workData.episodes[app.currentEpisodeIndex].pages.length){
+                    var page = container.querySelector(`[data-episode-index="${app.currentEpisodeIndex}"][data-episode-page-index="${index}"]`);
+                    page.style["display"] = "block";
+                }else if(index < 0 && 0 < app.currentEpisodeIndex){
+                    var previousEpisode = app.workData.episodes[app.currentEpisodeIndex - 1];
+                    if(previousEpisode.pages){
+                        var page = container.querySelector(`[data-episode-index="${app.currentEpisodeIndex - 1}"][data-episode-page-index="${previousEpisode.pages.length + index}"]`);
+                        if(page){
+                            page.style["display"] = "block";
+                        }
+                    }
+                }else if(currentEpisode.pages.length <= index && app.currentEpisodeIndex < app.workData.episodes.length - 1){
+                    var nextEpisode = app.workData.episodes[app.currentEpisodeIndex + 1];
+                    if(nextEpisode.pages){
+                        var page = container.querySelector(`[data-episode-index="${app.currentEpisodeIndex + 1}"][data-episode-page-index="${index - currentEpisode.pages.length}"]`);
+                        if(page){
+                            page.style["display"] = "block";
+                        }
+                    }
+                }
 
+            }
         }
     }
 

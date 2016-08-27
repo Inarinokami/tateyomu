@@ -25,7 +25,7 @@ function movePageTo(app, destStr, callback) {
                 update(app);
                 callback();
             });
-        } else if (dest === currentEpisode.pages.length) {
+        } else if (currentEpisode.pages && dest === currentEpisode.pages.length) {
             app.currentEpisodeIndex = app.currentEpisodeIndex + 1;
             var episode = app.workData.episodes[app.currentEpisodeIndex];
             loadEpisodePages(app.workData, episode.id, function() {
@@ -35,7 +35,7 @@ function movePageTo(app, destStr, callback) {
                 callback();
             });
         } else {
-            if (app.preload && dest === currentEpisode.pages.length - 1 && app.currentEpisodeIndex < app.workData.episodes.length - 1) {
+            if (app.preload && currentEpisode.pages && dest === currentEpisode.pages.length - 1 && app.currentEpisodeIndex < app.workData.episodes.length - 1) {
                 loadEpisodePages(app.workData, app.workData.episodes[app.currentEpisodeIndex + 1].id, function() {});
             }
             //if(app.preload && dest === 0 && 2 < app.currentEpisodeIndex){

@@ -5,7 +5,7 @@ var http = require('http');
 var express = require('express');
 var app = express();
 
-var pageview = false;
+var pageview = true;
 
 // kakuyomu
 app.get(/^\/raw\/works\/\d{19}(\/episodes\/\d{19})?$/, function(req, res) {
@@ -76,5 +76,11 @@ app.get(/.*/, function(req, res) {
 });
 
 var server = app.listen(process.env.PORT || 8080, function() {
-    console.log(`listening at port ${server.address().port}`);
+    var host = server.address().address;
+    var port = server.address().port;
+    if(host === "::"){
+        pageview = false;
+        console.log(`page view posting is disabled.`);            
+    }
+    console.log(`listening at port ${port}`);
 });
