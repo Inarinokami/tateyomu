@@ -78,9 +78,9 @@ app.get(/.*/, function(req, res) {
 var server = app.listen(process.env.PORT || 8080, function() {
     var host = server.address().address;
     var port = server.address().port;
-    if(host === "::"){
-        pageview = false;
-        console.log(`page view posting is disabled.`);            
-    }
+    //if(host === "::"){
+    //    pageview = false;
+    //    console.log(`page view posting is disabled.`);
+    //}
     console.log(`listening at port ${port}`);
 });
