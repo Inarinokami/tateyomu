@@ -10,6 +10,7 @@
 
         <link rel="icon" type="image/png" href="/favicon.png">
         <script src="/lib/jszip.js"></script>
+        <script src="/lib/setImmediate.js"></script>
         <script src="/js/util.js"></script>
         <script src="/js/xhr.js"></script>
         <script src="/js/flow.js"></script>
@@ -17,7 +18,7 @@
         <script src="/js/load.js"></script>
         <script src="/js/update.js"></script>
         <script src="/js/route.js"></script>
-        <script src="/js/plain.js"></script>        
+        <script src="/js/plain.js"></script>
         <script src="/js/index.js"></script>
         <script src="/js/kakuyomu.js"></script>
         <script src="/js/epub.js"></script>
@@ -140,15 +141,13 @@
                     【使いかた】<br>
                     　カクヨムの小説作品を縦書き表示・ページ送り操作で閲覧できる非公式サービスです。電子書籍形式（ｅｐｕｂ形式）への変換や、生のテキストデータでのバックアップもできます。<br>
                     　上のテキストボックスにカクヨム作品のＵＲＬを入力して、『縦書きで読む』ボタンを押してください。</br>
-                    　エピソードのＵＲＬを入力すると、そのエピソードから読み始めることもできます。<br>
-                    　
                     <br>
-                    <strong>※このサービスはまだまったくの開発途中の段階にあります。不具合が多いと思いますが、きっとそのうち直ります。</strong><br>
+                    <strong>※このサービスはまだまったくの開発途中の段階にあります。不具合を見つけたら、ツイッターで『#タテヨム』みたいなハッシュタグをつけて叫ぶと、そのうち開発者がツイートを拾って修正すると思います。</strong><br>
                     <br>
 
                     <a
                         class="tweet"
-                        href="https://twitter.com/intent/tweet?original_referer=http%3A%2F%2Flocalhost%3A8080%2F&ref_src=twsrc%5Etfw&text=%E3%82%BF%E3%83%86%E3%83%A8%E3%83%A0%20%7C%20%E5%B0%8F%E8%AA%AC%E3%81%AF%E3%80%81%E7%B8%A6%E6%9B%B8%E3%81%8D%E3%81%A7%E8%AA%AD%E3%82%82%E3%81%86%E3%80%82&tw_p=tweetbutton&url=https%3A%2F%2Ftateyomu.herokuapp.com%2F"
+                        href="https://twitter.com/intent/tweet?original_referer=http%3A%2F%2Flocalhost%3A8080%2F&ref_src=twsrc%5Etfw&text=%E5%B0%8F%E8%AA%AC%E3%81%AF%E3%80%81%E7%B8%A6%E6%9B%B8%E3%81%8D%E3%81%A7%E8%AA%AD%E3%82%82%E3%81%86%E3%80%82%20%23%E3%82%BF%E3%83%86%E3%83%A8%E3%83%A0&tw_p=tweetbutton&url=https%3A%2F%2Ftateyomu.herokuapp.com%2F"
                         target="_blank"
                         onclick="window.open(this.href, 'mywin','width=500,height=250,toolbar=0,resizable=0'); return false;"
                     >ツイート</a>
@@ -203,11 +202,9 @@
                     <br>
                     【更新履歴】<br>
                     ・平成二十八年八月十七日、試作第壱版公開<br>
+                    ・平成二十八年八月二十六日、試作第弐版公開<br>
                     <br>
                     【今後の予定】<br>
-                    ・ＵＲＬのリンク化<br>
-                    ・文字と背景の色の設定機能<br>
-                    ・文字サイズの変更機能<br>
                     ・小説の作法の検証機能<br>
                 </p>
 
@@ -217,7 +214,8 @@
                     【注意事項】<br>
                     ・このサービスは『カクヨム』が提供するものではありません。『カクヨム』に対してこのサービスに関する問い合わせはしないようにお願いします。<br>
                     ・このサービスはカクヨムに不足した機能を補完する目的で開発されており、カクヨムのサービス改善に応じてタテヨムの機能を予告なく削除することがあります。また、カクヨムにすでに存在する機能がタテヨムに実装されることはありません。<br>
-                    ・うまく動作しない場合は、ページを再読み込みすると直る場合があります。
+                    ・うまく動作しない場合は、ページを再読み込みすると直る場合があります。<br>
+                    ・スマートフォン等でも閲覧できますが、『游明朝体』がインストールされていない環境では４メガバイト程度の『こころ明朝体』がダウンロードされるため、ページの読み込み完了までかなりの時間がかかります。
                 </p>
 
             </div>

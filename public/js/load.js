@@ -58,14 +58,16 @@ function loadEpisodePages(workData, episodeID, callback) {
             });
 
             var episodeBody = renderEpisodePages(responseText);
-            episode.pages = paging(episodeBody);
-            episode.pages.forEach(function(page, i) {
-                page.setAttribute("data-episode-index", episodeIndex);
-                page.setAttribute("data-episode-page-index", i);
-                page.querySelector(".header").textContent = `${i + 1}　${episode.title}`;
-                page.style["z-index"] = "-" + pad4(workData.episodes.indexOf(episode) + 1) + pad4(i);
+            paging(episodeBody, function(pages){
+                episode.pages = pages;
+                episode.pages.forEach(function(page, i) {
+                    page.setAttribute("data-episode-index", episodeIndex);
+                    page.setAttribute("data-episode-page-index", i);
+                    page.querySelector(".header").textContent = `${i + 1}　${episode.title}`;
+                    page.style["z-index"] = "-" + pad4(workData.episodes.indexOf(episode) + 1) + pad4(i);
+                });
+                callback(episode);
             });
-            callback(episode);
         });
     }
 }

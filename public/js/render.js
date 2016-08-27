@@ -38,12 +38,14 @@ function renderIndexPage(workData) {
         })();
     }
 
-    workData.episodes[0].pages = paging(contents);
-    workData.episodes[0].pages.forEach(function(page, i) {
-        page.setAttribute("data-episode-index", "0");
-        page.setAttribute("data-episode-page-index", i);
-        page.style["z-index"] = "-0000" + pad4(i);
-        page.querySelector(".header").textContent = (i + 1) + "　目次";
+    paging(contents, function(pages){
+        workData.episodes[0].pages = pages;
+        workData.episodes[0].pages.forEach(function(page, i) {
+            page.setAttribute("data-episode-index", "0");
+            page.setAttribute("data-episode-page-index", i);
+            page.style["z-index"] = "-0000" + pad4(i);
+            page.querySelector(".header").textContent = (i + 1) + "　目次";
+        });
     });
 }
 

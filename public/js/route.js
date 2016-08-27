@@ -157,19 +157,39 @@ function routeExternalURL(app, url) {
                     gaiji.parentNode.removeChild(gaiji);
                 }
 
-                var pages = paging(mainText);
-                pages.forEach(function(page, i) {
-                    page.setAttribute("data-episode-index", "0");
-                    page.setAttribute("data-episode-page-index", i);
-                    page.style["z-index"] = "-0000" + pad4(i);
-                    page.querySelector(".header").textContent = (i + 1) + "　目次";
+
+                app.workData = {
+                    site: "aozora",
+                    id: "",
+                    title: "",
+                    author: "",
+                    genre: "",
+                    color: "",
+                    catchphrase: "",
+                    introduction: "",
+                    episodes: [{
+                        id: "index",
+                        title: "index",
+                        content: null,
+                        pages: null
+                    }]
+                };
+
+                paging(mainText, function(pages){
+                    app.workData.episodes[0].pages = pages;
+                    pages.forEach(function(page, i) {
+                        page.setAttribute("data-episode-index", "0");
+                        page.setAttribute("data-episode-page-index", i);
+                        page.style["z-index"] = "-0000" + pad4(i);
+                        page.querySelector(".header").textContent = (i + 1) + "　目次";
+                    });
+                    app.currentEpisodeIndex = 0;
+                    app.currentPage = 0;
+                    resize();
+                    update(app);
+                    closeLoading();
                 });
-                app.workData = null;
-                app.currentEpisodeIndex = 0;
-                app.currentPage = 0;
-                resize();
-                update(app);
-                closeLoading();
+
             });
         } else {
             // invalid url
