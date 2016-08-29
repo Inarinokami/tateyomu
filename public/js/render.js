@@ -1,52 +1,61 @@
 "use strict";
 
-function renderIndexPage(workData) {
-    var h1 = document.createElement("h1");
-    h1.textContent = workData.title;
+function renderIndexPage(workData, onPageLoaded, onComplete) {
+    if( ! workData.episodes[0].pages){
+        var h1 = document.createElement("h1");
+        h1.textContent = workData.title;
 
-    var author = document.createElement("p");
-    author.classList.add("author");
-    author.textContent = workData.author;
+        var author = document.createElement("p");
+        author.classList.add("author");
+        author.textContent = workData.author;
 
-    var h2 = document.createElement("h2");
-    h2.textContent = "目次";
+        var h2 = document.createElement("h2");
+        h2.textContent = "目次";
 
-    var contents = document.createElement("div");
-    contents.appendChild(h1);
-    contents.appendChild(author);
-    contents.appendChild(h2);
+        var contents = document.createElement("div");
+        contents.appendChild(h1);
+        contents.appendChild(author);
+        contents.appendChild(h2);
 
-    for (var i = 1; i < workData.episodes.length; i++) {
-        (function() {
-            var episode = workData.episodes[i];
-            var url = `/works/${workData.id}/episodes/${episode.id}`;
+        for (var i = 1; i < workData.episodes.length; i++) {
+            (function() {
+                var episode = workData.episodes[i];
+                var url = `/works/${workData.id}/episodes/${episode.id}`;
 
-            var a = document.createElement("a");
-            a.setAttribute("href", url);
-            a.textContent = halfToFull(episode.title);
-            a.addEventListener("click", function(e) {
-                route(url);
-                e.preventDefault();
-                e.stopPropagation();
-            });
+                var a = document.createElement("a");
+                a.setAttribute("href", url);
+                a.textContent = halfToFull(episode.title);
+                a.addEventListener("click", function(e) {
+                    route(url);
+                    e.preventDefault();
+                    e.stopPropagation();
+                });
 
-            var p = document.createElement("p");
-            p.classList.add("indexitem");
-            p.appendChild(a);
+                var p = document.createElement("p");
+                p.classList.add("indexitem");
+                p.appendChild(a);
 
-            contents.appendChild(p);
-        })();
-    }
+                contents.appendChild(p);
+            })();
+        }
 
-    paging(contents, function(pages){
-        workData.episodes[0].pages = pages;
-        workData.episodes[0].pages.forEach(function(page, i) {
-            page.setAttribute("data-episode-index", "0");
-            page.setAttribute("data-episode-page-index", i);
-            page.style["z-index"] = "-0000" + pad4(i);
-            page.querySelector(".header").textContent = (i + 1) + "　目次";
+        paging(
+            contents,
+            function(page){
+                var i = parseInt(page.getAttribute("data-episode-page-index"));
+                page.setAttribute("data-episode-index", "0");
+                page.setAttribute("data-episode-page-index", i);
+                page.style["z-index"] = 100000000 - i;
+                page.querySelector(".header").textContent = (i + 1) + "　目次";
+                onPageLoaded(page);
+            },
+            function(pages){
+            workData.episodes[0].pages = pages;
+            onComplete(workData.episodes[0]);
         });
-    });
+    }else{
+        onComplete(workData.episodes[0]);
+    }
 }
 
 function renderEpisodePages(responseText) {

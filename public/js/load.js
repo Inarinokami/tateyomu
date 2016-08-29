@@ -19,7 +19,8 @@ function getWorkData(workID, callback) {
                 id: "index",
                 title: "index",
                 content: null,
-                pages: null
+                pages: null,
+                source: responseText
             }]
         };
         var episodes = doc.querySelectorAll(".widget-toc-episode");
@@ -30,7 +31,8 @@ function getWorkData(workID, callback) {
                 id: matches[1],
                 title: episode.querySelector(".widget-toc-episode-titleLabel").textContent,
                 content: null, // null suggests "unloaded",
-                pages: null
+                pages: null,
+                source: null
             });
         }
         callback(dat);
@@ -38,51 +40,54 @@ function getWorkData(workID, callback) {
 }
 
 // [impure] get the episode data from the id
-function loadEpisodePages(workData, episodeID, callback) {
+function loadEpisodePages(workData, episodeID, onPageLoaded, onFinish) {
     if(episodeID === "index"){
-        callback(workData.episodes[0]);
-    }
-    var episode = workData.episodes.find(function(episode) {
-        return episode.id === episodeID;
-    });
-    if (!episode) {
-        throw new Error();
-    } else if (episode.pages) {
-        // loaded, ignore
-        callback(episode);
-    } else {
-        showViewer();
-        get(`/raw/works/${workData.id}/episodes/${episode.id}`, function(responseText) {
-            var episodeIndex = workData.episodes.findIndex(function(episode) {
-                return episode.id === episodeID
-            });
 
-            var episodeBody = renderEpisodePages(responseText);
-            paging(episodeBody, function(pages){
-                episode.pages = pages;
-                episode.pages.forEach(function(page, i) {
-                    page.setAttribute("data-episode-index", episodeIndex);
-                    page.setAttribute("data-episode-page-index", i);
-                    page.querySelector(".header").textContent = `${i + 1}　${episode.title}`;
-                    page.style["z-index"] = "-" + pad4(workData.episodes.indexOf(episode) + 1) + pad4(i);
+        renderIndexPage(
+            workData,
+            function(element){
+                onPageLoaded(element);
+            },
+            function(){
+                onFinish(workData.episodes[0]);
+            }
+        );
+
+
+    }else{
+        var episode = workData.episodes.find(function(episode) {
+            return episode.id === episodeID;
+        });
+
+        if (!episode) {
+            throw new Error();
+        } else if (episode.pages) {
+            // loaded, ignore
+            onFinish(episode);
+        } else {
+            showViewer();
+            showLoading();
+            get(`/raw/works/${workData.id}/episodes/${episode.id}`, function(responseText) {
+                var episodeIndex = workData.episodes.findIndex(function(episode) {
+                    return episode.id === episodeID
                 });
-                callback(episode);
-            });
-        });
-    }
-}
 
-function loadIndexPage(app, nextWorkID, callback) {
-    if (app.workData === null || app.workData.id !== nextWorkID) {
-        showViewer();
-        getWorkData(nextWorkID, function(dat) {
-            app.workData = dat;
-            container.innerHTML = "";
-            app.currentEpisodeIndex = null;
-            renderIndexPage(dat);
-            callback();
-        });
-    } else {
-        callback();
+                var episodeBody = renderEpisodePages(responseText);
+                paging(
+                    episodeBody,
+                    onPageLoaded,
+                    function(pages){
+                        episode.pages = pages;
+                        episode.pages.forEach(function(page, i) {
+                            page.setAttribute("data-episode-index", episodeIndex);
+                            page.setAttribute("data-episode-page-index", i);
+                            page.querySelector(".header").textContent = `${i + 1}　${episode.title}`;
+                            page.style["z-index"] = 100000000 - 10000 * (workData.episodes.indexOf(episode) + 1) - i;
+                        });
+                        onFinish(episode);
+                    }
+                );
+            });
+        }
     }
 }

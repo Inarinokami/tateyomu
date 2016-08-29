@@ -45,26 +45,42 @@ window.addEventListener("load", function() {
 
         container.innerHTML = "";
         app.currentEpisodeIndex = null;
-        renderIndexPage(app.workData);
-        loadEpisodePages(app.workData, app.workData.episodes[cei].id, function() {
-            app.currentEpisodeIndex = cei;
-            resize();
-            update(app);
-            closeLoading();
+        renderIndexPage(app.workData, function(){}, function(){
+            loadEpisodePages(
+                app.workData,
+                app.workData.episodes[cei].id,
+                function(){
+
+                },
+                function() {
+                    app.currentEpisodeIndex = cei;
+                    resize();
+                    update(app);
+                    closeLoading();
+                }
+            );
         });
+    }
+
+    function goto(app, dest, callback) {
+        if (viewer.style["display"] === "block" && !isLoading()) {
+            movePageTo(app, dest, callback);
+        } else {
+            callback();
+        }
     }
 
     ////////////////////////////////////////////////////////////////////////////
     // application state ///////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////
 
-    var app = {
+    var app = Object.preventExtensions({
         workData: null,             // WorkData or null
         currentEpisodeIndex: null,  // number or null
         currentPage: 0,
         preload: true,
         menuVisible: false
-    };
+    });
 
     var container = document.querySelector("div#container");
     var next = document.querySelector("div#next");
@@ -148,7 +164,7 @@ window.addEventListener("load", function() {
     });
 
     window.addEventListener("popstate", function(e) {
-        route(app, window.location.pathname);
+        routeToKakuyomuWorks(app, window.location.pathname);
     });
 
     window.addEventListener("resize", function(e) {
@@ -181,7 +197,9 @@ window.addEventListener("load", function() {
     });
 
     document.querySelector("#go-to-index").addEventListener("click", function() {
-        route(app, `/works/${app.workData.id}`);
+        var url = `/works/${app.workData.id}`;
+        routeToKakuyomuWorks(app, url);
+        history.pushState(null, null, url);
     });
 
     document.querySelector("#fullscreen").addEventListener("click", function() {
@@ -266,7 +284,7 @@ window.addEventListener("load", function() {
     }
 
     // initialize
-    route(app, window.location.pathname, function() {
+    routeToKakuyomuWorks(app, window.location.pathname, function() {
         closeLoading();
     });
 });
