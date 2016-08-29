@@ -155,7 +155,6 @@ function routeToKakuyomuWorks(app, contentPath, onFinish) {
 function routeExternalURL(app, url) {
     var matches = /^https:\/\/kakuyomu\.jp\/works\/(\d{19})(\/episodes\/(\d{19}|index)(\/(\d{1,4}|last))?)?$/.exec(url);
     if (matches) {
-        app.site = "kakuyomu";
         routeToKakuyomuWorks(app, document.querySelector("input#url").value.slice("https://kakuyomu.jp".length));
     } else {
         var matches = /^http\:\/\/www\.aozora\.gr\.jp\/cards\/(\d+)\/files\/(\d+_\d+)\.html$/.exec(url);
@@ -255,7 +254,6 @@ function routeExternalURL(app, url) {
             });
         } else {
             // invalid url
-            app.site = null;
             onFinish();
         }
     }
